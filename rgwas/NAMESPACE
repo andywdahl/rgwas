@@ -1,0 +1,2 @@
+export(droptest,fit_z,interxn_test,mfmr_em_alg_hom,mfmr_em_alg,mfmr,score_K)
+import(stats)

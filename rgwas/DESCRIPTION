@@ -1,0 +1,12 @@
+Package: rgwas
+Type: Package
+Title: Multiphenotype finite mixture of reressions
+Version: 1.0
+Date: 2018-7-07
+Author: Andy Dahl
+Maintainer: Andy Dahl <andywdahl@gmail.com>
+Description: RGWAS defines and validates subtypes using multiple traits and heterogeneous covariates. Includes MFMR to learn subtypes and downstream tests for heterogeneity between subtypes.
+License: GPL-3
+Imports:
+    parallel,
+		stats
