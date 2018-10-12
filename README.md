@@ -25,6 +25,8 @@ RGWAS relies on several different data matrices. First, the covariates are parti
 
 We generate the heterogeneoues covariates and SNPs in one of the simplest ways possible:
 ```R
+library(rgwas)
+
 N <- 3e3 # sample size
 
 K <- 2   # number subtypes
@@ -34,7 +36,7 @@ X0<- matrix( rnorm(N), N, 1 ) # null covar
 X <- matrix( rnorm(N), N, 1 ) # hom covar
 G <- matrix( rnorm(N), N, 1 ) # het covar
 
-S <- 1e4 # number SNPs
+S <- 1e2 # number SNPs
 snps <- matrix( rbinom(N*S,2,.1), N, S )
 ```
 In the last line, I defined the subtypes `Z`, which are used to simulate the data. RGWAS aims to recover `Z`.
@@ -47,7 +49,7 @@ alpha <- rnorm(P) # homogeneoues effects
 beta <- matrix( rnorm(K*P), K, P )    # heterogeneoues effects
 submeans <- matrix( rnorm(K*P), K, P )
 for( i in 1:N ) # very very slow
-  Y0[i,] <- submeans[z[i],] + 1/Q0*X[i,] %*% alpha + 1/Q1*G[i,] %*% beta[z[i],] + rnorm(P)
+  Y0[i,] <- submeans[z[i],] + X[i,] %*% alpha + G[i,] %*% beta[z[i],] + rnorm(P)
 round(rhomat <- cor(Y0),2)
 round(rhomat1 <- cor(Y0[z==1,]),2)
 round(rhomat2 <- cor(Y0[z==2,]),2)
@@ -55,7 +57,7 @@ mean(abs(rhomat[upper.tri(rhomat)]))   # smaller
 mean(abs(rhomat1[upper.tri(rhomat1)])) # larger
 mean(abs(rhomat2[upper.tri(rhomat2)])) # also larger
 ```
-Note that I added a mean subtype effect
+Note that I added a mean subtype effect, which (a) is usually realistic and (b) makes subtyping dramatically easier.
 
 To make binary traits, I'll just threshold some columns of `Y0`, implicitly treating them as liabilities:
 ```R
@@ -103,7 +105,7 @@ cor( beta[2,qphens], qbetahat )^2
 
 ## Testing large-effect covariates
 
-Covariates with broad phenotypic effects are difficult to test because they can perturb subtype estimates if improperly modelled. Our test for these covariates involves treating each, in turn, as homogeneoues, ,....
+Covariates with broad phenotypic effects are difficult to test because they can perturb subtype estimates if improperly modelled. Our proposal is to refit MFMR for each tested large-effect covariate in turn, treating the tested covariate as homogeneoues within MFMR to balance over- and under-fitting the covariate effect (see our paper for details). In practice, this means the test is best performed with a specialized for loop, which I implemented in `droptest`:
 ```R
 dropout  <- droptest( Yb, Y, cbind(1,X0,X,G), test_inds=2:4, K=2 )
 
@@ -115,5 +117,54 @@ round( dropout$pvals['Het',4  ,qphens], 3 ) # all truly alternate
 ```
 
 ## Testing small-effect covariates
+
+Covariates with negligible phenotypic effects, on the other hand, can be ignored when fitting MFMR. This is very similar to fitting linear mixed models with variance components learned assuming each individual SNP has roughly zero effect. In this scenario, testing can be done independently of fitting MFMR. So I take the original MFMR fit, treating all covariates in `cbind(1,X0,X,G)` as heterogeneoues, i.e. `out`. Then, using these subtypes, I perform standard fixed effect tests for SNP-subtype interaction:
+```R 
+# condition on all covariate-subtype interactions with Khatri-Rao product:
+covars      <- cbind(1,X0,X,G)
+covars_x_E  <- t(sapply( 1:N, function(i) covars[i,,drop=FALSE] %x% out$pmat[i,] ))
+
+pmat <- out$pmat[,-1,drop=FALSE] # full-rank version of pmat
+Xreg <- cbind( covars_x_E, pmat )
+pvals <- apply( snps, 2, function(snp) interxn_test( X=Xreg, y=Y[,1], g=snp, pmat=pmat, bin=FALSE )$pvals )
+quantile( pvals['Hom',] )
+quantile( pvals['Het',] )
+
+pvals <- apply( snps, 2, function(snp) interxn_test( X=Xreg, y=Yb[,1], g=snp, pmat=pmat, bin=TRUE )$pvals )
+quantile( pvals['Hom',] )
+quantile( pvals['Het',] )
+```
+This can be performed for all traits with an `apply` function or for loop.
+
+
+
+Covariates with negligible phenotypic effects, on the other hand, can be ignored when fitting MFMR. This is very similar to fitting linear mixed models with variance components learned assuming each individual SNP has roughly zero effect. In this scenario, testing can be done independently of fitting MFMR. So I take the original MFMR fit, treating all covariates in `cbind(1,X0,X,G)` as heterogeneoues, i.e. `out`. Then, using these subtypes, I perform standard fixed effect tests for SNP-subtype interaction:
+```R 
+# add small g effect to first two quantitative traits
+Y <- scale(Y)
+Y[z==1,1]<- Y[z==1,1] + snps[z==1,1] * rnorm( 1, sd=1e-1*sqrt(2) )  # het
+Y[    ,2]<- Y[    ,2] + snps[    ,1] * rnorm( 1, sd=1e-1 )          # hom
+Y <- scale(Y)
+
+# refit pmat with new, perturbed phens
+out <- mfmr( Yb, Y, cbind(1,X0,X,G), K=2 )
+
+# test with new pmat and phens
+pmat <- out$pmat[,-1,drop=FALSE] # full-rank version of pmat
+Xreg <- cbind( covars_x_E, pmat )
+pvals <- apply( snps, 2, function(snp) interxn_test( X=Xreg, y=Y[,1], g=snp, pmat=pmat, bin=FALSE )$pvals )
+quantile( pvals['Hom',] )
+quantile( pvals['Het',] )
+
+pvals <- apply( snps, 2, function(snp) interxn_test( X=Xreg, y=Yb[,1], g=snp, pmat=pmat, bin=TRUE )$pvals )
+quantile( pvals['Hom',] )
+quantile( pvals['Het',] )
+```
+This can be performed for all traits with an `apply` function or for loop.
+
+
+
+
+
 
 
