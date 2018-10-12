@@ -126,12 +126,12 @@ covars_x_E  <- t(sapply( 1:N, function(i) covars[i,,drop=FALSE] %x% out$pmat[i,,
 
 pmat <- out$pmat[,-1,drop=FALSE] # full-rank version of pmat
 pvalsq <- apply( snps, 2, function(g) interxn_test( covars_x_E, Y[,1], g, pmat, bin=FALSE )$pvals )
-quantile( pvalsq['Hom',] )
-quantile( pvalsq['Het',] )
+ks.test( pvalsq['Hom',] )
+ks.test( pvalsq['Het',] )
 
 pvalsb <- apply( snps, 2, function(g) interxn_test( covars_x_E, Yb[,1], g, pmat, bin=TRUE )$pvals )
-quantile( pvalsb['Hom',] )
-quantile( pvalsb['Het',] )
+ks.test( pvalsb['Hom',] )
+ks.test( pvalsb['Het',] )
 ```
 This can be performed for all traits with an `apply` function or for loop. Because MFMR does not need to be refit, testing with `interxn_tst` just amounts to performing t/F-tests for linear/logistic regression, for which `interxn_tst` is essentially just a (hopefully) helpful interface.
 
@@ -140,8 +140,8 @@ To get positive results for SNP heterogeneity, I add a small effects of SNP 1: a
 # add small g effect to first two quantitative traits
 Y <- scale(Y)
 snps  <- scale(snps)
-Y[z==1,1]<- Y[z==1,1] + snps[z==1,1] * .01 * sqrt(2) # het
-Y[    ,2]<- Y[    ,2] + snps[    ,1] * .01           # hom
+Y[z==1,1]<- Y[z==1,1] + snps[z==1,1] * .05 * sqrt(2) # het
+Y[    ,2]<- Y[    ,2] + snps[    ,1] * .05           # hom
 Y <- scale(Y)
 
 # refit pmat with new, perturbed phens
@@ -150,14 +150,14 @@ out <- mfmr( Yb, Y, covars, K=2 )
 # test with new pmat and phens
 pmat <- out$pmat[,-1,drop=FALSE] # full-rank version of pmat
 pvalsq1 <- apply( snps, 2, function(g) interxn_test( covars_x_E, Y[,1], g, pmat, bin=FALSE )$pvals )
-quantile( pvalsq1['Hom',-1] ) # null
-quantile( pvalsq1['Het',-1] ) # null
+ks.test( pvalsq1['Hom',-1], 'punif' )$p # null
+ks.test( pvalsq1['Het',-1], 'punif' )$p # null
 pvalsq1['Hom',1] # signif
 pvalsq1['Het',1] # signif
 
 pvalsq2 <- apply( snps, 2, function(g) interxn_test( covars_x_E, Y[,2], g, pmat, bin=FALSE )$pvals )
-quantile( pvalsq2['Hom',-1] ) # null
-quantile( pvalsq2['Het',-1] ) # null
+ks.test( pvalsq2['Hom',-1], 'punif' )$p # null
+ks.test( pvalsq2['Het',-1], 'punif' )$p # null
 pvalsq2['Hom',1] # signif
 pvalsq2['Het',1] # null
 ```
