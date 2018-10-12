@@ -69,10 +69,11 @@ Y   <- Y0[,qphens]
 
 ## Running MFMR
 
-Now I run MFMR on the traits and covariates. Imaginging that I don't know which columns in `X` and `G` are null, homogeneoues or heterogeneoues, I combine all into the putatitively heterogeneoues covariates inside MFMR (the `G` argument). I also add an intercept column to capture mean subtype effects, which are extremely helpful in practice--this is the entire signal driving covariate-unaware methods, like Gaussian mixture models of k-means.
+Now I run MFMR on the traits and covariates. Imaginging that I don't know which columns in `X` and `G` are null, homogeneoues or heterogeneoues, I combine all into `covars` and treat them as putatitively heterogeneoues inside MFMR (the `G` argument). I also add an intercept column to capture mean subtype effects, which are extremely helpful in practice--this is the entire signal driving covariate-unaware methods, like Gaussian mixture models of k-means.
 
 ```R
-out <- mfmr( Yb, Y, cbind(1,X0,X,G), K=2 )
+covars <- cbind(1,X0,X,G)
+out <- mfmr( Yb, Y, covars, K=2 )
 ```
 In this extremely simple simulation, MFMR seems to converge to the same likelihood mode for each of the `nrun=10` random restarts. In practice, however, random restarts is usually important: it does not guarantee global likelihood maximization, but it dramatically reduces the probability of obtaining a practically useless mode.
 
@@ -88,7 +89,7 @@ Though intuitive for our example with `K=2` subtypes, simple correlation is not 
 
 I can also see whether MFMR estimated the regression coefficients accurately. First, the homogeneoues effects should resemble the subtype-specific effects estimates in both groups:
 ```R
-# truly-hom column of cbind(1,X0,X,G)
+# truly-hom column of covars
 qalphahat1 <- out$out$beta[1,3,qphens]
 qalphahat2 <- out$out$beta[2,3,qphens]
 cor( alpha[qphens], qalphahat1 )
@@ -97,7 +98,7 @@ cor( alpha[qphens], qalphahat2 )
 
 To assess the heterogeneoues effects requires matching up the labels in MFMR to the true, simulated labels. I.e. `beta[1,]` may correspond to the estimated `betahat[2,]` because of label swapping. So I just compute the error metrics for each labelling option (because there are only 2 when `K=2`):
 ```R
-# truly-het column of cbind(1,X0,X,G)
+# truly-het column of covars
 qbetahat <- out$out$beta[1,4,qphens]
 cor( beta[1,qphens], qbetahat )^2
 cor( beta[2,qphens], qbetahat )^2
@@ -107,7 +108,7 @@ cor( beta[2,qphens], qbetahat )^2
 
 Covariates with broad phenotypic effects are difficult to test because they can perturb subtype estimates if improperly modelled. Our proposal is to refit MFMR for each tested large-effect covariate in turn, treating the tested covariate as homogeneoues within MFMR to balance over- and under-fitting the covariate effect (see our paper for details). In practice, this means the test is best performed with a specialized for loop, which I implemented in `droptest`:
 ```R
-dropout  <- droptest( Yb, Y, cbind(1,X0,X,G), test_inds=2:4, K=2 )
+dropout  <- droptest( Yb, Y, covars, test_inds=2:4, K=2 )
 
 round( dropout$pvals['Hom',2 ,qphens], 3 ) # all truly null
 round( dropout$pvals['Hom',3:4,qphens], 3 ) # all truly alternate
@@ -118,10 +119,9 @@ round( dropout$pvals['Het',4  ,qphens], 3 ) # all truly alternate
 
 ## Testing small-effect covariates
 
-Covariates with negligible phenotypic effects, on the other hand, can be ignored when fitting MFMR. This is very similar to fitting linear mixed models with variance components learned assuming each individual SNP has roughly zero effect. In this scenario, testing can be done independently of fitting MFMR. So I take the original MFMR fit, treating all covariates in `cbind(1,X0,X,G)` as heterogeneoues, i.e. `out`. Then, using these subtypes, I perform standard fixed effect tests for SNP-subtype interaction:
+Covariates with negligible phenotypic effects, on the other hand, can be ignored when fitting MFMR. This is very similar to fitting linear mixed models with variance components learned assuming each individual SNP has roughly zero effect. In this scenario, testing can be done independently of fitting MFMR. So I take the original MFMR fit, treating all covariates in `covars` as heterogeneoues, i.e. `out`. Then, using these subtypes, I perform standard fixed effect tests for SNP-subtype interaction:
 ```R 
 # condition on all covariate-subtype interactions with Khatri-Rao product:
-covars      <- cbind(1,X0,X,G)
 covars_x_E  <- t(sapply( 1:N, function(i) covars[i,,drop=FALSE] %x% out$pmat[i,,drop=FALSE] ))
 
 pmat <- out$pmat[,-1,drop=FALSE] # full-rank version of pmat
@@ -140,12 +140,12 @@ To get positive results for SNP heterogeneity, I add a small effects of SNP 1: a
 # add small g effect to first two quantitative traits
 Y <- scale(Y)
 snps  <- scale(snps)
-Y[z==1,1]<- Y[z==1,1] + snps[z==1,1] * .1  # het
-Y[    ,2]<- Y[    ,2] + snps[    ,1] * .1  # hom
+Y[z==1,1]<- Y[z==1,1] + snps[z==1,1] * .01 * sqrt(2) # het
+Y[    ,2]<- Y[    ,2] + snps[    ,1] * .01           # hom
 Y <- scale(Y)
 
 # refit pmat with new, perturbed phens
-out <- mfmr( Yb, Y, cbind(1,X0,X,G), K=2 )
+out <- mfmr( Yb, Y, covars, K=2 )
 
 # test with new pmat and phens
 pmat <- out$pmat[,-1,drop=FALSE] # full-rank version of pmat
