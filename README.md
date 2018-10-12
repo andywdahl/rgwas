@@ -151,13 +151,13 @@ out <- mfmr( Yb, Y, cbind(1,X0,X,G), K=2 )
 # test with new pmat and phens
 pmat <- out$pmat[,-1,drop=FALSE] # full-rank version of pmat
 Xreg <- cbind( covars_x_E, pmat )
-pvalsq1 <- apply( snps, 2, function(snp) interxn_test( X=Xreg, y=Y[,1], g=snp, pmat=pmat, bin=FALSE )$pvals )
+pvalsq1 <- apply( snps, 2, function(g) interxn_test( Xreg, Y[,1], g, pmat, bin=FALSE )$pvals )
 quantile( pvalsq1['Hom',-1] ) # null
 quantile( pvalsq1['Het',-1] ) # null
 pvalsq1['Hom',1] # signif
 pvalsq1['Het',1] # signif
 
-pvalsq2 <- apply( snps, 2, function(snp) interxn_test( X=Xreg, y=Y[,2], g=snp, pmat=pmat, bin=FALSE )$pvals )
+pvalsq2 <- apply( snps, 2, function(g) interxn_test( Xreg, Y[,2], g, pmat, bin=FALSE )$pvals )
 quantile( pvalsq2['Hom',-1] ) # null
 quantile( pvalsq2['Het',-1] ) # null
 pvalsq2['Hom',1] # signif
