@@ -133,7 +133,7 @@ pvalsb <- apply( snps, 2, function(g) interxn_test( covars_x_E, Yb[,1], g, pmat,
 quantile( pvalsb['Hom',] )
 quantile( pvalsb['Het',] )
 ```
-This can be performed for all traits with an `apply` function or for loop. Because MFMR does not need to be refit, testing with `interxn_tst` just amounts to performing linear regression t/F-tests, for which `interxn_tst` is essentially just a (hopefully) helpful interface.
+This can be performed for all traits with an `apply` function or for loop. Because MFMR does not need to be refit, testing with `interxn_tst` just amounts to performing t/F-tests for linear/logistic regression, for which `interxn_tst` is essentially just a (hopefully) helpful interface.
 
 To get positive results for SNP heterogeneity, I add a small effects of SNP 1: a homogeneoues effect on quantitative trait 2, and a heterogeneoues effect on quantitative trait 1:
 ```R 
