@@ -134,9 +134,9 @@ pvalsb <- apply( snps, 2, function(snp) interxn_test( X=Xreg, y=Yb[,1], g=snp, p
 quantile( pvalsb['Hom',] )
 quantile( pvalsb['Het',] )
 ```
-This can be performed for all traits with an `apply` function or for loop.
+This can be performed for all traits with an `apply` function or for loop. Because MFMR does not need to be refit, testing with `interxn_tst` just amounts to performing linear regression t/F-tests, for which `interxn_tst` is essentially just a (hopefully) helpful interface.
 
-Covariates with negligible phenotypic effects, on the other hand, can be ignored when fitting MFMR. This is very similar to fitting linear mixed models with variance components learned assuming each individual SNP has roughly zero effect. In this scenario, testing can be done independently of fitting MFMR. So I take the original MFMR fit, treating all covariates in `cbind(1,X0,X,G)` as heterogeneoues, i.e. `out`. Then, using these subtypes, I perform standard fixed effect tests for SNP-subtype interaction:
+To get positive results for SNP heterogeneity, I add a small effects of SNP 1: a homogeneoues effect on quantitative trait 2, and a heterogeneoues effect on quantitative trait 1:
 ```R 
 # add small g effect to first two quantitative traits
 Y <- scale(Y)
@@ -163,4 +163,3 @@ quantile( pvalsq2['Het',-1] ) # null
 pvalsq2['Hom',1] # signif
 pvalsq2['Het',1] # null
 ```
-This can be performed for all traits with an `apply` function or for loop. Because MFMR does not need to be refit, testing with `interxn_tst` just amounts to performing linear regression t/F-tests, for which `interxn_tst` is essentially just a (hopefully) helpful interface.
