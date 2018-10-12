@@ -51,8 +51,8 @@ submeans <- matrix( rnorm(K*P), K, P )
 for( i in 1:N ) # very very slow
   Y0[i,] <- submeans[z[i],] + X[i,] %*% alpha + G[i,] %*% beta[z[i],] + rnorm(P)
 round(rhomat <- cor(Y0),2)
-round(rhomat1 <- cor(Y0[z==1,]),2)
-round(rhomat2 <- cor(Y0[z==2,]),2)
+rhomat1 <- cor(Y0[z==1,])
+rhomat2 <- cor(Y0[z==2,])
 mean(abs(rhomat[upper.tri(rhomat)]))   # smaller
 mean(abs(rhomat1[upper.tri(rhomat1)])) # larger
 mean(abs(rhomat2[upper.tri(rhomat2)])) # also larger
@@ -122,28 +122,27 @@ Covariates with negligible phenotypic effects, on the other hand, can be ignored
 ```R 
 # condition on all covariate-subtype interactions with Khatri-Rao product:
 covars      <- cbind(1,X0,X,G)
-covars_x_E  <- t(sapply( 1:N, function(i) covars[i,,drop=FALSE] %x% out$pmat[i,] ))
+covars_x_E  <- t(sapply( 1:N, function(i) covars[i,,drop=FALSE] %x% out$pmat[i,,drop=FALSE] ))
 
 pmat <- out$pmat[,-1,drop=FALSE] # full-rank version of pmat
 Xreg <- cbind( covars_x_E, pmat )
-pvals <- apply( snps, 2, function(snp) interxn_test( X=Xreg, y=Y[,1], g=snp, pmat=pmat, bin=FALSE )$pvals )
-quantile( pvals['Hom',] )
-quantile( pvals['Het',] )
+pvalsq <- apply( snps, 2, function(snp) interxn_test( X=Xreg, y=Y[,1], g=snp, pmat=pmat, bin=FALSE )$pvals )
+quantile( pvalsq['Hom',] )
+quantile( pvalsq['Het',] )
 
-pvals <- apply( snps, 2, function(snp) interxn_test( X=Xreg, y=Yb[,1], g=snp, pmat=pmat, bin=TRUE )$pvals )
-quantile( pvals['Hom',] )
-quantile( pvals['Het',] )
+pvalsb <- apply( snps, 2, function(snp) interxn_test( X=Xreg, y=Yb[,1], g=snp, pmat=pmat, bin=TRUE )$pvals )
+quantile( pvalsb['Hom',] )
+quantile( pvalsb['Het',] )
 ```
 This can be performed for all traits with an `apply` function or for loop.
-
-
 
 Covariates with negligible phenotypic effects, on the other hand, can be ignored when fitting MFMR. This is very similar to fitting linear mixed models with variance components learned assuming each individual SNP has roughly zero effect. In this scenario, testing can be done independently of fitting MFMR. So I take the original MFMR fit, treating all covariates in `cbind(1,X0,X,G)` as heterogeneoues, i.e. `out`. Then, using these subtypes, I perform standard fixed effect tests for SNP-subtype interaction:
 ```R 
 # add small g effect to first two quantitative traits
 Y <- scale(Y)
-Y[z==1,1]<- Y[z==1,1] + snps[z==1,1] * rnorm( 1, sd=1e-1*sqrt(2) )  # het
-Y[    ,2]<- Y[    ,2] + snps[    ,1] * rnorm( 1, sd=1e-1 )          # hom
+snps  <- scale(snps)
+Y[z==1,1]<- Y[z==1,1] + snps[z==1,1] * .1  # het
+Y[    ,2]<- Y[    ,2] + snps[    ,1] * .1  # hom
 Y <- scale(Y)
 
 # refit pmat with new, perturbed phens
@@ -152,19 +151,16 @@ out <- mfmr( Yb, Y, cbind(1,X0,X,G), K=2 )
 # test with new pmat and phens
 pmat <- out$pmat[,-1,drop=FALSE] # full-rank version of pmat
 Xreg <- cbind( covars_x_E, pmat )
-pvals <- apply( snps, 2, function(snp) interxn_test( X=Xreg, y=Y[,1], g=snp, pmat=pmat, bin=FALSE )$pvals )
-quantile( pvals['Hom',] )
-quantile( pvals['Het',] )
+pvalsq1 <- apply( snps, 2, function(snp) interxn_test( X=Xreg, y=Y[,1], g=snp, pmat=pmat, bin=FALSE )$pvals )
+quantile( pvalsq1['Hom',-1] ) # null
+quantile( pvalsq1['Het',-1] ) # null
+pvalsq1['Hom',1] # signif
+pvalsq1['Het',1] # signif
 
-pvals <- apply( snps, 2, function(snp) interxn_test( X=Xreg, y=Yb[,1], g=snp, pmat=pmat, bin=TRUE )$pvals )
-quantile( pvals['Hom',] )
-quantile( pvals['Het',] )
+pvalsq2 <- apply( snps, 2, function(snp) interxn_test( X=Xreg, y=Y[,2], g=snp, pmat=pmat, bin=FALSE )$pvals )
+quantile( pvalsq2['Hom',-1] ) # null
+quantile( pvalsq2['Het',-1] ) # null
+pvalsq2['Hom',1] # signif
+pvalsq2['Het',1] # null
 ```
-This can be performed for all traits with an `apply` function or for loop.
-
-
-
-
-
-
-
+This can be performed for all traits with an `apply` function or for loop. Because MFMR does not need to be refit, testing with interxn_tst just amounts to performing linear regression t/F-tests, for which interxn_tst is essentially just a (hopefully) helpful interface.
