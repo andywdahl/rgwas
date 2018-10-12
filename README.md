@@ -126,11 +126,11 @@ covars_x_E  <- t(sapply( 1:N, function(i) covars[i,,drop=FALSE] %x% out$pmat[i,,
 
 pmat <- out$pmat[,-1,drop=FALSE] # full-rank version of pmat
 Xreg <- cbind( covars_x_E, pmat )
-pvalsq <- apply( snps, 2, function(snp) interxn_test( X=Xreg, y=Y[,1], g=snp, pmat=pmat, bin=FALSE )$pvals )
+pvalsq <- apply( snps, 2, function(g) interxn_test( Xreg, Y[,1], g, pmat, bin=FALSE )$pvals )
 quantile( pvalsq['Hom',] )
 quantile( pvalsq['Het',] )
 
-pvalsb <- apply( snps, 2, function(snp) interxn_test( X=Xreg, y=Yb[,1], g=snp, pmat=pmat, bin=TRUE )$pvals )
+pvalsb <- apply( snps, 2, function(g) interxn_test( Xreg, Yb[,1], g, pmat, bin=TRUE )$pvals )
 quantile( pvalsb['Hom',] )
 quantile( pvalsb['Het',] )
 ```
