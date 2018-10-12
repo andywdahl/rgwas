@@ -7,15 +7,15 @@ R CMD INSTALL rgwas_1.0.tar.gz
 
 ## MFMR
 
-mfmr learns latent sample subtypes using quantitative and binary traits and covariates. Ideally, the traits share subtypes, meaning groups of samples differ in distribution across many of the traits. The covariates can have different effects in different subtypes, which can be leveraged to improve subtype estimates.
+`mfmr` learns latent sample subtypes using quantitative and binary traits and covariates. Ideally, the traits share subtypes, meaning groups of samples differ in distribution across many of the traits. The covariates can have different effects in different subtypes, which can be leveraged to improve subtype estimates.
 
 ## Large-effect covariate test 
 
-droptest performs the RGWAS test for large-effect covariates. It fits MFMR for each covariate in turn, not allowing the tested covariate to have an heterogeneous effect across subtypes in MFMR (which overfits, see Supplementary Figure 1 of our RGWAS paper).
+`droptest` performs the RGWAS test for large-effect covariates. It fits MFMR for each covariate in turn, not allowing the tested covariate to have an heterogeneous effect across subtypes in MFMR (which overfits, see Supplementary Figure 1 of our RGWAS paper).
 
 ## Small-effect covariate test (MFMRX)
 
-interxn_test performs the RGWAS test for small-effect covariates, which uses a single fit of MFMR that ignores the tested covariates. This is computationally efficient and enables GWAS-scale tests.
+`interxn_test` performs the RGWAS test for small-effect covariates, which uses a single fit of MFMR that ignores the tested covariates. This is computationally efficient and enables GWAS-scale tests.
 
 # Example analysis of simple simulated data
 
@@ -163,4 +163,4 @@ quantile( pvalsq2['Het',-1] ) # null
 pvalsq2['Hom',1] # signif
 pvalsq2['Het',1] # null
 ```
-This can be performed for all traits with an `apply` function or for loop. Because MFMR does not need to be refit, testing with interxn_tst just amounts to performing linear regression t/F-tests, for which interxn_tst is essentially just a (hopefully) helpful interface.
+This can be performed for all traits with an `apply` function or for loop. Because MFMR does not need to be refit, testing with `interxn_tst` just amounts to performing linear regression t/F-tests, for which `interxn_tst` is essentially just a (hopefully) helpful interface.
