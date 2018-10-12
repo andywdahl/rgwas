@@ -125,12 +125,11 @@ covars      <- cbind(1,X0,X,G)
 covars_x_E  <- t(sapply( 1:N, function(i) covars[i,,drop=FALSE] %x% out$pmat[i,,drop=FALSE] ))
 
 pmat <- out$pmat[,-1,drop=FALSE] # full-rank version of pmat
-Xreg <- cbind( covars_x_E, pmat )
-pvalsq <- apply( snps, 2, function(g) interxn_test( Xreg, Y[,1], g, pmat, bin=FALSE )$pvals )
+pvalsq <- apply( snps, 2, function(g) interxn_test( covars_x_E, Y[,1], g, pmat, bin=FALSE )$pvals )
 quantile( pvalsq['Hom',] )
 quantile( pvalsq['Het',] )
 
-pvalsb <- apply( snps, 2, function(g) interxn_test( Xreg, Yb[,1], g, pmat, bin=TRUE )$pvals )
+pvalsb <- apply( snps, 2, function(g) interxn_test( covars_x_E, Yb[,1], g, pmat, bin=TRUE )$pvals )
 quantile( pvalsb['Hom',] )
 quantile( pvalsb['Het',] )
 ```
@@ -150,14 +149,13 @@ out <- mfmr( Yb, Y, cbind(1,X0,X,G), K=2 )
 
 # test with new pmat and phens
 pmat <- out$pmat[,-1,drop=FALSE] # full-rank version of pmat
-Xreg <- cbind( covars_x_E, pmat )
-pvalsq1 <- apply( snps, 2, function(g) interxn_test( Xreg, Y[,1], g, pmat, bin=FALSE )$pvals )
+pvalsq1 <- apply( snps, 2, function(g) interxn_test( covars_x_E, Y[,1], g, pmat, bin=FALSE )$pvals )
 quantile( pvalsq1['Hom',-1] ) # null
 quantile( pvalsq1['Het',-1] ) # null
 pvalsq1['Hom',1] # signif
 pvalsq1['Het',1] # signif
 
-pvalsq2 <- apply( snps, 2, function(g) interxn_test( Xreg, Y[,2], g, pmat, bin=FALSE )$pvals )
+pvalsq2 <- apply( snps, 2, function(g) interxn_test( covars_x_E, Y[,2], g, pmat, bin=FALSE )$pvals )
 quantile( pvalsq2['Hom',-1] ) # null
 quantile( pvalsq2['Het',-1] ) # null
 pvalsq2['Hom',1] # signif
