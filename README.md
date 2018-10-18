@@ -39,7 +39,7 @@ G <- matrix( rnorm(N), N, 1 ) # het covar
 S <- 1e2 # number SNPs
 snps <- matrix( rbinom(N*S,2,.1), N, S )
 ```
-In the last line, I defined the subtypes `Z`, which are used to simulate the data. RGWAS aims to recover `Z`.
+RGWAS aims to recover `z`, the true subtypes used to simulate the data.
 
 The second type of data RGWAS uses are phenotype matrices: `Y` for quantitative traits and `Yb` for binary traits. First, I simulate quantitative traits, again in a very simple (and computationally inefficient!) way:
 ```R
