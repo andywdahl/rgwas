@@ -137,9 +137,11 @@ This can be performed for all traits with an `apply` function or for loop. Becau
 
 To get positive results for SNP heterogeneity, I add a small effects of SNP 1: a homogeneoues effect on quantitative trait 2, and a heterogeneoues effect on quantitative trait 1:
 ```R 
-# add small g effect to first two quantitative traits
-Y <- scale(Y)
+# scale so effect sizes are more easily interpretable
+Y <- scale(Y) 
 snps  <- scale(snps)
+
+# add small g effect to first two quantitative traits
 Y[z==1,1]<- Y[z==1,1] + snps[z==1,1] * .05 * sqrt(2) # het
 Y[    ,2]<- Y[    ,2] + snps[    ,1] * .05           # hom
 Y <- scale(Y)
