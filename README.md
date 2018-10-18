@@ -28,42 +28,40 @@ We generate the heterogeneoues covariates and SNPs in one of the simplest ways p
 library(rgwas)
 
 N <- 3e3 # sample size
-
-K <- 2   # number subtypes
-z <- sample( K, N, replace=TRUE ) 
-
-X0<- matrix( rnorm(N), N, 1 ) # null covar
-X <- matrix( rnorm(N), N, 1 ) # hom covar
-G <- matrix( rnorm(N), N, 1 ) # het covar
-
 S <- 1e2 # number SNPs
+K <- 2   # number subtypes
+
+z <- sample( K, N, replace=TRUE ) # subtypes
+X0<- matrix( rnorm(N), N, 1 )     # null covar
+X <- matrix( rnorm(N), N, 1 )     # hom covar
+G <- matrix( rnorm(N), N, 1 )     # het covar
 snps <- matrix( rbinom(N*S,2,.1), N, S )
 ```
 RGWAS aims to recover `z`, the true subtypes used to simulate the data.
 
 The second type of data RGWAS uses are phenotype matrices: `Y` for quantitative traits and `Yb` for binary traits. First, I simulate quantitative traits, again in a very simple (and computationally inefficient!) way:
 ```R
-P <- 20  # number binary+quantitative traits
+P   <- 20  # number binary+quantitative traits
 Y0  <- matrix( NA, N, P )
 alpha <- rnorm(P) # homogeneoues effects
-beta <- matrix( rnorm(K*P), K, P )    # heterogeneoues effects
-submeans <- matrix( rnorm(K*P), K, P )
+beta  <- matrix( rnorm(K*P), K, P )    # heterogeneoues effects
+mus   <- matrix( rnorm(K*P), K, P )
 for( i in 1:N ) # very very slow
-  Y0[i,] <- submeans[z[i],] + X[i,] %*% alpha + G[i,] %*% beta[z[i],] + rnorm(P)
-round(rhomat <- cor(Y0),2)
+  Y0[i,] <- mus[z[i],] + X[i,] %*% alpha + G[i,] %*% beta[z[i],] + rnorm(P)
+rhomat  <- cor(Y0)
 rhomat1 <- cor(Y0[z==1,])
 rhomat2 <- cor(Y0[z==2,])
 mean(abs(rhomat[upper.tri(rhomat)]))   # smaller
 mean(abs(rhomat1[upper.tri(rhomat1)])) # larger
 mean(abs(rhomat2[upper.tri(rhomat2)])) # also larger
 ```
-Note that I added a mean subtype effect, which (a) is usually realistic and (b) makes subtyping dramatically easier.
+I added a mean subtype effect which (a) is usually realistic and (b) makes subtyping much easier.
 
-To make binary traits, I'll just threshold some columns of `Y0`, implicitly treating them as liabilities:
+To make binary traits, I'll treat some columns of `Y0` as liabilities and threshold them:
 ```R
 bphens <- 1:(P/2)
-Yb  <- apply( Y0[,bphens], 2, function(y) as.numeric( y > quantile(y,.8) ) )
 qphens <- P/2+1:(P/2)
+Yb  <- apply( Y0[,bphens], 2, function(y) as.numeric( y > quantile(y,.8) ) )
 Y   <- Y0[,qphens]
 ```
 
@@ -73,7 +71,7 @@ Now I run MFMR on the traits and covariates. Imaginging that I don't know which 
 
 ```R
 covars <- cbind(1,X0,X,G)
-out <- mfmr( Yb, Y, covars, K=2 )
+out    <- mfmr( Yb, Y, covars, K=2 )
 ```
 In this extremely simple simulation, MFMR seems to converge to the same likelihood mode for each of the `nrun=10` random restarts. In practice, however, random restarts is usually important: it does not guarantee global likelihood maximization, but it dramatically reduces the probability of obtaining a practically useless mode.
 
@@ -110,7 +108,7 @@ Covariates with broad phenotypic effects are difficult to test because they can 
 ```R
 dropout  <- droptest( Yb, Y, covars, test_inds=2:4, K=2 )
 
-round( dropout$pvals['Hom',2 ,qphens], 3 ) # all truly null
+round( dropout$pvals['Hom',2  ,qphens], 3 ) # all truly null
 round( dropout$pvals['Hom',3:4,qphens], 3 ) # all truly alternate
 
 round( dropout$pvals['Het',2:3,qphens], 3 ) # all truly null
@@ -124,7 +122,7 @@ Covariates with negligible phenotypic effects, on the other hand, can be ignored
 # condition on all covariate-subtype interactions with Khatri-Rao product:
 covars_x_E  <- t(sapply( 1:N, function(i) covars[i,,drop=FALSE] %x% out$pmat[i,,drop=FALSE] ))
 
-pmat <- out$pmat[,-1,drop=FALSE] # full-rank version of pmat
+pmat   <- out$pmat[,-1,drop=FALSE] # full-rank version of pmat
 pvalsq <- apply( snps, 2, function(g) interxn_test( covars_x_E, Y[,1], g, pmat, bin=FALSE )$pvals )
 ks.test( pvalsq['Hom',] )
 ks.test( pvalsq['Het',] )
@@ -133,33 +131,32 @@ pvalsb <- apply( snps, 2, function(g) interxn_test( covars_x_E, Yb[,1], g, pmat,
 ks.test( pvalsb['Hom',] )
 ks.test( pvalsb['Het',] )
 ```
-This can be performed for all traits with an `apply` function or for loop. Because MFMR does not need to be refit, testing with `interxn_tst` just amounts to performing t/F-tests for linear/logistic regression, for which `interxn_tst` is essentially just a (hopefully) helpful interface.
+This can be performed for all traits with an `apply` function (e.g. mclapply from the `parallel` R package) or for loop. Because MFMR does not need to be refit, testing with `interxn_tst` just amounts to performing t/F-tests for linear/logistic regression, for which `interxn_tst` is essentially just a (hopefully) helpful interface.
 
-To get positive results for SNP heterogeneity, I add a small effects of SNP 1: a homogeneoues effect on quantitative trait 2, and a heterogeneoues effect on quantitative trait 1:
+To simulate true positive results for SNP heterogeneity, I add a small effects of SNP 1: a homogeneoues effect on quantitative trait 2, and a heterogeneoues effect on quantitative trait 1:
 ```R 
 # scale so effect sizes are more easily interpretable
-Y <- scale(Y) 
-snps  <- scale(snps)
+Y    <- scale(Y) 
+snps <- scale(snps)
 
 # add small g effect to first two quantitative traits
 Y[z==1,1]<- Y[z==1,1] + snps[z==1,1] * .05 * sqrt(2) # het
 Y[    ,2]<- Y[    ,2] + snps[    ,1] * .05           # hom
-Y <- scale(Y)
 
 # refit pmat with new, perturbed phens
 out <- mfmr( Yb, Y, covars, K=2 )
 
 # test with new pmat and phens
-pmat <- out$pmat[,-1,drop=FALSE] # full-rank version of pmat
+pmat    <- out$pmat[,-1,drop=FALSE] # full-rank version of pmat
 pvalsq1 <- apply( snps, 2, function(g) interxn_test( covars_x_E, Y[,1], g, pmat, bin=FALSE )$pvals )
-ks.test( pvalsq1['Hom',-1], 'punif' )$p # null
-ks.test( pvalsq1['Het',-1], 'punif' )$p # null
-pvalsq1['Hom',1] # signif
-pvalsq1['Het',1] # signif
-
 pvalsq2 <- apply( snps, 2, function(g) interxn_test( covars_x_E, Y[,2], g, pmat, bin=FALSE )$pvals )
-ks.test( pvalsq2['Hom',-1], 'punif' )$p # null
-ks.test( pvalsq2['Het',-1], 'punif' )$p # null
-pvalsq2['Hom',1] # signif
-pvalsq2['Het',1] # null
+
+pvalsq1[,1] # signif for Hom and Het
+pvalsq2[,1] # signif for Hom only
+
+# everything other than binary and quantitative trait 1 is (rightly) null
+ks.test( pvalsq1['Hom',-1], 'punif' )$p
+ks.test( pvalsq1['Het',-1], 'punif' )$p
+ks.test( pvalsq2['Hom',-1], 'punif' )$p
+ks.test( pvalsq2['Het',-1], 'punif' )$p
 ```
