@@ -21,7 +21,6 @@ droptest	<- function(
 
 	##### test each column of G
 	gxe_outs	<- parallel::mclapply( 1:ncol(G), mc.cores=mc.cores, function(test_ind){
-	#tryCatch({
 		if( ! test_ind %in% test_inds ) return(NA)
 		cat( 'Running G index ', test_ind, '\n' )
 
@@ -42,8 +41,6 @@ droptest	<- function(
 			out1	<- interxn_test( X=cbind( X, pmat[,-K,drop=F], Gxpmat ), y=y, g=G[,test_ind], pmat=pmat[,-K,drop=F], bin=bin )
 			list( pvals=out1$pvals, summ=summary( out1$fit )$coef )
 		})
-		#out
-		#}, error=function(e) print( e ))
 		out
 	})
 

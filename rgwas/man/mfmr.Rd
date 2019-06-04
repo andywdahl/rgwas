@@ -15,7 +15,7 @@ mfmr(
 }
 
 \arguments{
-  \item{Yb}{NxB matrix of binary traits}
+  \item{Yb}{NxB matrix of binary traits. Should be NULL if there are no binary traits.}
   \item{Yq}{NxP matrix of quantitative traits}
   \item{G}{NxS matrix of heterogeneous covariates}
   \item{X}{NxQ matrix of homogeneous covariates}
@@ -64,4 +64,12 @@ out <- mfmr( Yb, Yq, G, K=2 )
 round( cor( out$pmat[,1], z )^2 , 2 )
 round( cor( as.numeric( beta1 ), as.numeric( out$out$beta[1,,-(1:B)] ) ), 2 )
 round( cor( as.numeric( beta1 ), as.numeric( out$out$beta[2,,-(1:B)] ) ), 2 )
+
+# removing binary traits slightly reduces accuracy
+out <- mfmr( Yb=NULL, Yq, G, K=2 )
+round( cor( out$pmat[,1], z )^2 , 2 )
+round( cor( as.numeric( beta1 ), as.numeric( out$out$beta[1,,] ) ), 2 )
+round( cor( as.numeric( beta1 ), as.numeric( out$out$beta[2,,] ) ), 2 )
+~
+
 }

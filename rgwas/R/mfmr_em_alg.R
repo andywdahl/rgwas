@@ -5,8 +5,8 @@ mfmr_em_alg	<- function(
 	maxit=1e3, tol=rep(1e-3,2)
 ){
 
-	#if( is.null( Yb ) )
-	#	return( mfmr_em_alg_nobin( Y, G, X, K, trace, N, Q, S, P, pvec, alpha, beta, Sigma, maxit, tol, gamma) )
+	if( is.null( Yb ) )
+		return( mfmr_em_alg_nobin( Y, G, X, K, trace, N, Q, S, P, pvec, alpha, beta, Sigma, maxit, tol ) )
 
 	al_eps	<- 0
 	Xalpha	<- matrix( 0, N, P )
