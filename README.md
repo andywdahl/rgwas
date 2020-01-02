@@ -1,6 +1,7 @@
 # RGWAS
 
-RGWAS infers subtypes with MFMR and then tests covariates downstream for heterogeneity across subtypes.
+RGWAS infers subtypes with MFMR and then tests covariates downstream for heterogeneity across subtypes. RGWAS is described in Dahl et al 2019 Plos Genetics: https://doi.org/10.1371/journal.pgen.1008009
+
 
 ## Installation
 R CMD INSTALL rgwas_1.0.tar.gz
