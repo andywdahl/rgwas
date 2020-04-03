@@ -42,7 +42,7 @@ RGWAS aims to recover `z`, the true subtypes used to simulate the data.
 
 The second type of data RGWAS uses are phenotype matrices: `Y` for quantitative traits and `Yb` for binary traits. First, I simulate quantitative traits, again in a very simple (and computationally inefficient!) way:
 ```R
-P   <- 50  # number binary+quantitative traits
+P   <- 20  # number binary+quantitative traits
 Y0  <- matrix( NA, N, P )
 alpha <- rnorm(P) # homogeneoues effects
 beta  <- matrix( rnorm(K*P)/3, K, P )    # heterogeneoues effects
@@ -54,8 +54,8 @@ I added a mean subtype effect which (a) is usually realistic and (b) makes subty
 
 To make binary traits, I'll treat some columns of `Y0` as liabilities and threshold them:
 ```R
-bphens <- 1:5
-qphens <- 6:P
+bphens <- 1:3
+qphens <- 4:P
 Yb  <- apply( Y0[,bphens], 2, function(y) as.numeric( y > quantile(y,.8) ) )
 Y   <- Y0[,qphens]
 ```
@@ -160,9 +160,9 @@ ks.test( pvalsq2['Het',-1], 'punif' )$p
 
 Choosing K is not generally straightforward. For modest sample sizes (eg <10K), we recommend choosing K to maximize out-of-sample likelihood. This can be accomplished with `score_K`, which performs `n.fold`-fold cross-validation:
 ```R 
-meanll  <- numeric(6)
-for( K in 1:6 )
-        meanll[K]       <- median( score_K( G=G, X=X, Yb=Yb, Yq=Y, K=K, n.folds=3 )[,1] ) ### generally, we suggest n.folds=10
+meanll  <- numeric(5)
+for( K in 1:5 )
+        meanll[K]       <- median( score_K( G=G, X=X, Yb=Yb, Yq=Y, K=K, n.folds=3 )[,1] ) ### n.folds=3 just for illustration
 meanll # maximized at K=2, which is true in this simple simulation
 ```
 However, in practice we heavily emphasize sensitivity analyses, meaning evaluating results after increasing or decreasing K by 1. Also, we prefer to err on the side of conservatism, meaning choosing lower values of K when multiple choices of K give similar likelihoods.
