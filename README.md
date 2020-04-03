@@ -46,7 +46,7 @@ P   <- 20  # number binary+quantitative traits
 Y0  <- matrix( NA, N, P )
 alpha <- rnorm(P) # homogeneoues effects
 beta  <- matrix( rnorm(K*P), K, P )    # heterogeneoues effects
-mus   <- matrix( rnorm(K*P), K, P )
+mus   <- 2*matrix( rnorm(K*P), K, P )
 for( i in 1:N )
   Y0[i,] <- mus[z[i],] + X[i,] %*% alpha + G[i,] %*% beta[z[i],] + rnorm(P)
 rhomat  <- cor(Y0)
