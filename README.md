@@ -171,5 +171,6 @@ for( K in 1:4 )
         meanll[K]       <- mean( score_K( G=G, X=X, Yb=Yb, Yq=Y, K=K, n.folds=3 )[,1] ) ### generally, we suggest n.folds=10
 meanll # maximized at K=2, which is true in this simple simulation
 ```
+However, in practice we heavily emphasize sensitivity analyses, meaning evaluating results after increasing or decreasing K by 1. Also, we prefer to err on the side of conservatism, meaning choosing lower values of K when multiple choices of K give similar likelihoods.
 
-
+Ultimately, we heavily rely on simulations in Dahl et al 2019 Plos Gen that suggest downstream inference is calibrated for any (reasonble) choice of K, and our goal in choosing K is to maximize power.
