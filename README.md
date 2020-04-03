@@ -49,9 +49,6 @@ beta  <- matrix( rnorm(K*P), K, P )    # heterogeneoues effects
 mus   <- 2*matrix( rnorm(K*P), K, P )
 for( i in 1:N )
   Y0[i,] <- mus[z[i],] + X[i,] %*% alpha + G[i,] %*% beta[z[i],] + rnorm(P)
-rhomat  <- cor(Y0)
-rhomat1 <- cor(Y0[z==1,])
-rhomat2 <- cor(Y0[z==2,])
 ```
 I added a mean subtype effect which (a) is usually realistic and (b) makes subtyping much easier.
 
