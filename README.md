@@ -28,7 +28,7 @@ We generate the heterogeneoues covariates and SNPs in one of the simplest ways p
 ```R
 library(rgwas)
 
-N <- 1e3 # sample size
+N <- 3e3 # sample size
 S <- 1e2 # number SNPs
 K <- 2   # number subtypes
 
@@ -42,10 +42,10 @@ RGWAS aims to recover `z`, the true subtypes used to simulate the data.
 
 The second type of data RGWAS uses are phenotype matrices: `Y` for quantitative traits and `Yb` for binary traits. First, I simulate quantitative traits, again in a very simple (and computationally inefficient!) way:
 ```R
-P   <- 30  # number binary+quantitative traits
+P   <- 20  # number binary+quantitative traits
 Y0  <- matrix( NA, N, P )
 alpha <- rnorm(P) # homogeneoues effects
-beta  <- matrix( rnorm(K*P), K, P )    # heterogeneoues effects
+beta  <- matrix( rnorm(K*P)/3, K, P )    # heterogeneoues effects
 mus   <- matrix( rnorm(K*P), K, P )
 for( i in 1:N )
   Y0[i,] <- mus[z[i],] + X[i,] %*% alpha + G[i,] %*% beta[z[i],] + rnorm(P)
@@ -54,8 +54,8 @@ I added a mean subtype effect which (a) is usually realistic and (b) makes subty
 
 To make binary traits, I'll treat some columns of `Y0` as liabilities and threshold them:
 ```R
-bphens <- 1:5
-qphens <- 6:P
+bphens <- 1:3
+qphens <- 4:P
 Yb  <- apply( Y0[,bphens], 2, function(y) as.numeric( y > quantile(y,.8) ) )
 Y   <- scale(Y0[,qphens])
 ```
