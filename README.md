@@ -42,7 +42,7 @@ RGWAS aims to recover `z`, the true subtypes used to simulate the data.
 
 The second type of data RGWAS uses are phenotype matrices: `Y` for quantitative traits and `Yb` for binary traits. First, I simulate quantitative traits, again in a very simple (and computationally inefficient!) way:
 ```R
-P   <- 30  # number binary+quantitative traits
+P   <- 50  # number binary+quantitative traits
 Y0  <- matrix( NA, N, P )
 alpha <- rnorm(P) # homogeneoues effects
 beta  <- matrix( rnorm(K*P), K, P )    # heterogeneoues effects
@@ -54,8 +54,8 @@ I added a mean subtype effect which (a) is usually realistic and (b) makes subty
 
 To make binary traits, I'll treat some columns of `Y0` as liabilities and threshold them:
 ```R
-bphens <- 1:4
-qphens <- 5:P
+bphens <- 1:5
+qphens <- 6:P
 Yb  <- apply( Y0[,bphens], 2, function(y) as.numeric( y > quantile(y,.8) ) )
 Y   <- Y0[,qphens]
 ```
