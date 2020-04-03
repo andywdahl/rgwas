@@ -28,7 +28,7 @@ We generate the heterogeneoues covariates and SNPs in one of the simplest ways p
 ```R
 library(rgwas)
 
-N <- 3e3 # sample size
+N <- 5e3 # sample size
 S <- 1e2 # number SNPs
 K <- 2   # number subtypes
 
@@ -60,8 +60,8 @@ I added a mean subtype effect which (a) is usually realistic and (b) makes subty
 
 To make binary traits, I'll treat some columns of `Y0` as liabilities and threshold them:
 ```R
-bphens <- 1:(P/2)
-qphens <- P/2+1:(P/2)
+bphens <- 1:4
+qphens <- 5:P
 Yb  <- apply( Y0[,bphens], 2, function(y) as.numeric( y > quantile(y,.8) ) )
 Y   <- Y0[,qphens]
 ```
