@@ -45,8 +45,8 @@ The second type of data RGWAS uses are phenotype matrices: `Y` for quantitative 
 P   <- 50  # number binary+quantitative traits
 Y0  <- matrix( NA, N, P )
 alpha <- rnorm(P) # homogeneoues effects
-beta  <- matrix( rnorm(K*P), K, P )    # heterogeneoues effects
-mus   <- matrix( rnorm(K*P), K, P )
+beta  <- matrix( rnorm(K*P)/3, K, P )    # heterogeneoues effects
+mus   <- matrix( rnorm(K*P)/3, K, P )
 for( i in 1:N )
   Y0[i,] <- mus[z[i],] + X[i,] %*% alpha + G[i,] %*% beta[z[i],] + rnorm(P)
 ```
@@ -160,9 +160,9 @@ ks.test( pvalsq2['Het',-1], 'punif' )$p
 
 Choosing K is not generally straightforward. For modest sample sizes (eg <10K), we recommend choosing K to maximize out-of-sample likelihood. This can be accomplished with `score_K`, which performs `n.fold`-fold cross-validation:
 ```R 
-meanll  <- numeric(4)
-for( K in 1:4 )
-        meanll[K]       <- mean( score_K( G=G, X=X, Yb=Yb, Yq=Y, K=K, n.folds=3 )[,1] ) ### generally, we suggest n.folds=10
+meanll  <- numeric(6)
+for( K in 1:6 )
+        meanll[K]       <- median( score_K( G=G, X=X, Yb=Yb, Yq=Y, K=K, n.folds=3 )[,1] ) ### generally, we suggest n.folds=10
 meanll # maximized at K=2, which is true in this simple simulation
 ```
 However, in practice we heavily emphasize sensitivity analyses, meaning evaluating results after increasing or decreasing K by 1. Also, we prefer to err on the side of conservatism, meaning choosing lower values of K when multiple choices of K give similar likelihoods.
