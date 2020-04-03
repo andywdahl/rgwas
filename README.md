@@ -52,9 +52,6 @@ for( i in 1:N )
 rhomat  <- cor(Y0)
 rhomat1 <- cor(Y0[z==1,])
 rhomat2 <- cor(Y0[z==2,])
-mean(abs(rhomat[upper.tri(rhomat)]))   # smaller
-mean(abs(rhomat1[upper.tri(rhomat1)])) # larger
-mean(abs(rhomat2[upper.tri(rhomat2)])) # also larger
 ```
 I added a mean subtype effect which (a) is usually realistic and (b) makes subtyping much easier.
 
