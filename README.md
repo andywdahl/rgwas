@@ -161,3 +161,15 @@ ks.test( pvalsq1['Het',-1], 'punif' )$p
 ks.test( pvalsq2['Hom',-1], 'punif' )$p
 ks.test( pvalsq2['Het',-1], 'punif' )$p
 ```
+
+## Choosing the number of subtypes (K)
+
+Choosing K is not generally straightforward. For modest sample sizes (eg <10K), we recommend choosing K to maximize out-of-sample likelihood. This can be accomplished with `score_K`, which performs `n.fold`-fold cross-validation:
+```R 
+meanll  <- numeric(4)
+for( K in 1:4 )
+        meanll[K]       <- mean( score_K( G=G, X=X, Yb=Yb, Yq=Y, K=K, n.folds=3 )[,1] ) ### generally, we suggest n.folds=10
+meanll # maximized at K=2, which is true in this simple simulation
+```
+
+
