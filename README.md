@@ -158,17 +158,15 @@ ks.test( pvalsq2['Het',-1], 'punif' )$p
 
 ## Choosing the number of subtypes (K)
 
-Choosing K is not generally straightforward. For modest sample sizes (eg <10K), we recommend choosing K to maximize out-of-sample likelihood. This can be accomplished with `score_K`, which performs `n.fold`-fold cross-validation:
+Choosing K is not generally straightforward. Ultimately, we heavily rely on simulations in Dahl et al 2019 Plos Gen that suggest downstream inference is calibrated for any (reasonble) choice of K, and our goal in choosing K is to maximize power. We strongly suggest sensitivity analyses in practice, meaning evaluating results after increasing or decreasing K by 1.
+
+For modest sample sizes (eg <10K), we recommend choosing K to maximize out-of-sample likelihood. This can be accomplished with `score_K`, which performs `n.fold`-fold cross-validation:
 ```R 
 meanll  <- numeric(5)
 for( K in 1:5 )
         meanll[K]       <- median( score_K( G=G, X=X, Yb=Yb, Yq=Y, K=K )[,1] ) ### n.folds=3 just for illustration
 meanll # maximized at K=2, which is true in this simple simulation
 ```
-Note this liable to fit K that is too large, as the penalty for superfluous clusters is low (eg there is no likelihood cost to adding a cluster with weight 0). 
-
-In practice we heavily emphasize sensitivity analyses, meaning evaluating results after increasing or decreasing K by 1. Also, we prefer to err on the side of conservatism, meaning choosing lower values of K when multiple choices of K give similar likelihoods.
-
-Ultimately, we heavily rely on simulations in Dahl et al 2019 Plos Gen that suggest downstream inference is calibrated for any (reasonble) choice of K, and our goal in choosing K is to maximize power.
+Note this liable to fit K that is too large, as the penalty for superfluous clusters is low (eg there is no likelihood cost to adding a cluster with weight 0). We prefer to err on the side of conservatism, meaning choosing lower values of K when multiple choices of K give similar likelihoods.
 
 Robust lower bounds on K can be established with prediction strength metrics at large sample sizes. However, this comes at the cost of splitting the sample into halves, which can be prohibitive for small sample sizes.
