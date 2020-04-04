@@ -33,7 +33,7 @@ S <- 1e2 # number SNPs
 K <- 2   # number subtypes
 
 z <- sample( K, N, replace=TRUE ) # subtypes
-X0<- matrix( rnorm(N), N, 1 )     # null covar
+G0<- matrix( rnorm(N*5), N, 5 )     # null covar
 X <- matrix( rnorm(N), N, 1 )     # hom covar
 G <- matrix( rnorm(N), N, 1 )     # het covar
 snps <- matrix( rbinom(N*S,2,.1), N, S )
@@ -45,12 +45,10 @@ The second type of data RGWAS uses are phenotype matrices: `Y` for quantitative 
 P   <- 20  # number binary+quantitative traits
 Y0  <- matrix( NA, N, P )
 alpha <- rnorm(P) # homogeneoues effects
-beta  <- matrix( rnorm(K*P)/3, K, P )    # heterogeneoues effects
+beta  <- matrix( rnorm(K*P), K, P )    # heterogeneoues effects
 mus   <- matrix( rnorm(K*P), K, P )
 for( i in 1:N )
-  Y0[i,1:10] <- mus[z[i],] + X[i,] %*% alpha + G[i,] %*% beta[z[i],] + rnorm(10)
-for( i in 1:N )
-  Y0[i,11:P] <- X[i,] %*% alpha + rnorm(P-10)
+  Y0[i,] <- X[i,] %*% alpha + G[i,] %*% beta[z[i],] + rnorm(P)
 ```
 I added a mean subtype effect which (a) is usually realistic and (b) makes subtyping much easier.
 
@@ -67,7 +65,7 @@ Y   <- scale(Y0[,qphens])
 Now I run MFMR on the traits and covariates. Imaginging that I don't know which columns in `X` and `G` are null, homogeneoues or heterogeneoues, I combine all into `covars` and treat them as putatitively heterogeneoues inside MFMR (the `G` argument). I also add an intercept column to capture mean subtype effects, which are extremely helpful in practice--this is the entire signal driving covariate-unaware methods, like Gaussian mixture models of k-means.
 
 ```R
-covars <- cbind(1,X0,X,G)
+covars <- cbind(1,G0,X,G)
 out    <- mfmr( Yb, Y, covars, K=2 )
 ```
 In this extremely simple simulation, MFMR seems to converge to the same likelihood mode for each of the `nrun=10` random restarts. In practice, however, random restarts is usually important: it does not guarantee global likelihood maximization, but it dramatically reduces the probability of obtaining a practically useless mode.
@@ -164,9 +162,9 @@ Choosing K is not generally straightforward. Ultimately, we heavily rely on simu
 
 For modest sample sizes (eg <10K), we recommend choosing K to maximize out-of-sample likelihood. This can be accomplished with `score_K`, which performs `n.fold`-fold cross-validation:
 ```R 
-meanll  <- numeric(5)
-for( K in 1:5 )
-        meanll[K]       <- median( score_K( G=G, X=X, Yb=Yb, Yq=Y, K=K )[,1] ) ### n.folds=3 just for illustration
+meanll  <- numeric(3)
+for( K in 1:3 )
+        meanll[K]       <- median( score_K( G=cbind(G,G0), X=X, Yb=Yb, Yq=Y, K=K, n.folds=3 )[,1] ) ### n.folds=3 just for illustration
 meanll # maximized at K=2, which is true in this simple simulation
 ```
 Note this liable to fit K that is too large, as the penalty for superfluous clusters is low (eg there is no likelihood cost to adding a cluster with weight 0). We prefer to err on the side of conservatism, meaning choosing lower values of K when multiple choices of K give similar likelihoods.
