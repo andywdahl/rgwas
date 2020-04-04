@@ -48,7 +48,9 @@ alpha <- rnorm(P) # homogeneoues effects
 beta  <- matrix( rnorm(K*P)/3, K, P )    # heterogeneoues effects
 mus   <- matrix( rnorm(K*P), K, P )
 for( i in 1:N )
-  Y0[i,] <- mus[z[i],] + X[i,] %*% alpha + G[i,] %*% beta[z[i],] + rnorm(P)
+  Y0[i,1:10] <- mus[z[i],] + X[i,] %*% alpha + G[i,] %*% beta[z[i],] + rnorm(10)
+for( i in 1:N )
+  Y0[i,11:P] <- X[i,] %*% alpha + rnorm(P-10)
 ```
 I added a mean subtype effect which (a) is usually realistic and (b) makes subtyping much easier.
 
