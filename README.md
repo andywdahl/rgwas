@@ -1,8 +1,8 @@
 # RGWAS
 
 RGWAS is a two-step approach to find and validate novel subtypes in multi-trait datasets, and is described in [Dahl et al 2019 Plos Genetics](https://doi.org/10.1371/journal.pgen.1008009):
-1. Step 1 is to find subtypes with `mfmr`
-2. Step 2 is to validate subtypes by testing for subtype-specific covariate effects with `droptest` or `interxn_test`
+1. Find subtypes by clustering traits with `mfmr`
+2. Validate subtypes by testing for subtype-specific covariate effects with `droptest` or `interxn_test`
 
 We also have unpublished tests for Step 2 when Step 1 is applied only in cases, which allows disease subtyping: `droptest_mlr` and `interxn_test_mlr`. In this setting, all controls are grouped together.
 
@@ -14,8 +14,8 @@ R CMD INSTALL rgwas_1.0.tar.gz
 `mfmr` takes covariates and traits (binary and/or continuous) as input and produces subtypes as output.
 
 The covariates can have different effects in different subtypes, which can be leveraged to improve subtype estimates:
-  -Traits are assumed to differ in distribution between subtypes.
-  -Covariates are assumed to differ in effects between subtypes (but not necessarily in distribution).
+ - Traits are assumed to differ in distribution between subtypes.
+ - Covariates are assumed to differ in effects between subtypes (but not necessarily in distribution).
 Intuitively, the goal is to learn structure in the traits after accounting for covariates. This removes confounding structure from the data (eg sex, age, or ethnicity). This adjustment can both (a) solve false positive subtypes and (b) enable discovery of subtle true positive subtypes.
  
 # Step 2: Testing subtypes for heterogeneous covariates
