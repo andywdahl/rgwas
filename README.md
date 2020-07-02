@@ -23,7 +23,7 @@ Intuitively, the goal is to learn structure in the traits after accounting for c
 
 ## Scenario 1: Covariates with small effects
 
-When covariate effects are small, they can be ignored during the clustering step to infer subtypes. This is important because it enables GWAS-scale tests.
+When covariate effects are small, they can be ignored during the clustering step to infer subtypes; importantly, this enables genome-wide testing.
 
 In this scenario, subtypes from Step 1 are fixed and directly input to `interxn_test`, along with the tested covariate.
 
