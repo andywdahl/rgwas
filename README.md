@@ -119,10 +119,13 @@ cor( mus[1,qphens], bhats[1,1,qphens] )^2
 
 # 2nd component of bhats estimates truly homogenous effects:
 cor( alpha[qphens], bhats[1,2,qphens] )^2
+[1] 0.9557434
 
 # 3rd component of bhats estimates truly heterogenous effects:
 cor( beta[1,qphens], bhats[1,3,qphens] )^2
+[1] 0.9725267
 cor( beta[1,qphens], bhats[2,3,qphens] )^2
+[1] 0.04442622
 ```
 Some notes:
 -The correlation is calculated specifically on the quantitative phenotypes to avoid worrying about the liability scale transformation, but similar results are obtained by examining `bphens` instead.
@@ -136,11 +139,25 @@ Covariates with broad phenotypic effects are difficult to test because they can 
 ```R
 dropout  <- droptest( Yb, Y, covars, test_inds=2:4, K=2 )
 
-round( dropout$pvals['Hom',2  ,qphens], 3 ) # all truly null
-round( dropout$pvals['Hom',3:4,qphens], 3 ) # all truly alternate
+### Effects for X and G truly exist and test should be non-null:
+quantile( dropout$pvals['Hom',2:3,qphens] ) # all truly alt
+           0%           25%           50%           75%          100% 
+ 0.000000e+00  0.000000e+00 4.062414e-278  3.367239e-73  6.501983e-01 
 
-round( dropout$pvals['Het',2:3,qphens], 3 ) # all truly null
-round( dropout$pvals['Het',4  ,qphens], 3 ) # all truly alternate
+### Effects for X and G truly do not exist and test should be null:
+quantile( dropout$pvals['Hom',4. ,qphens] )
+        0%        25%        50%        75%       100% 
+0.03665779 0.22945576 0.52966551 0.71049620 0.98079611 
+
+### Effects for X are truly Hom and so Het test should be null:
+quantile( dropout$pvals['Het',2,qphens] )
+        0%        25%        50%        75%       100% 
+0.01771635 0.27058785 0.48521272 0.71587194 0.98876730 
+
+### Effects for X are truly Het and so Het test should be non-null:
+quantile( dropout$pvals['Het',3,qphens] ) 
+          0%          25%          50%          75%         100% 
+3.802443e-14 1.232082e-08 2.247578e-04 2.369354e-01 6.692128e-01 
 ```
 
 ## Testing small-effect covariates
