@@ -53,6 +53,7 @@ RGWAS relies on several different data matrices. First, the covariates are parti
 
 We generate the heterogeneoues covariates and SNPs in one of the simplest ways possible:
 ```R
+set.seed(1234)
 library(rgwas)
 
 N <- 5e3 # sample size
@@ -102,17 +103,19 @@ In this extremely simple simulation, MFMR converges to the same likelihood for e
 To see whether MFMR provides a reasonable estimate of the subtypes, I calculate the R-squared between true and estimated subtype probabilities:
 ```R
 cor( out$pmat[,1], z )^2
+[1] 0.9748958
 ```
 Though intuitive for our example with `K=2` subtypes, simple correlation is not generally a useful metric for assessing similarity between proportions.
 
 ### Assessing regression estimates
 
-I can also see whether MFMR estimated the regression coefficients accurately. First, the homogeneoues effects should resemble the subtype-specific effects estimates in both groups:
+To check that MFMR estimates the regression coefficients accurately:
 ```R
 bhats   <- out$out$beta
 
 # 1st component of bhats estimates intercepts:
 cor( mus[1,qphens], bhats[1,1,qphens] )^2
+[1] 0.5339208
 
 # 2nd component of bhats estimates truly homogenous effects:
 cor( alpha[qphens], bhats[1,2,qphens] )^2
@@ -121,8 +124,11 @@ cor( alpha[qphens], bhats[1,2,qphens] )^2
 cor( beta[1,qphens], bhats[1,3,qphens] )^2
 cor( beta[1,qphens], bhats[2,3,qphens] )^2
 ```
-
-To assess the heterogeneoues effects requires matching up the labels in MFMR to the true, simulated labels. I.e. `beta[1,]` may correspond to the estimated `betahat[2,]` because of label swapping. So I just compute the error metrics for each labelling option (because there are only 2 when `K=2`):
+Some notes:
+-The correlation is calculated specifically on the quantitative phenotypes to avoid worrying about the liability scale transformation, but similar results are obtained by examining `bphens` instead.
+-The mean effects in `mus` are correlated with `bhats` for either subtype because the phenotypes are centered.
+-The homogeneous effects in `alpha` are correlated with `bhats` for either subtype.
+-The heterogeneous effects in `beta` are only correlated with `bhats` for one subtype. Due to label switching, the true subtype labels may not match inferred subtype labels--i.e. `beta[1,]` may match `bhats[1,3,]` or `bhats[2,3,]`.
 
 ## Testing large-effect covariates
 
