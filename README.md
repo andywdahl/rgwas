@@ -16,6 +16,7 @@ R CMD INSTALL rgwas_1.0.tar.gz
 The covariates can have different effects in different subtypes, which can be leveraged to improve subtype estimates:
  - Traits are assumed to differ in distribution between subtypes.
  - Covariates are assumed to differ in effects between subtypes (but not necessarily in distribution).
+
 Intuitively, the goal is to learn structure in the traits after accounting for covariates. This removes confounding structure from the data (eg sex, age, or ethnicity). This adjustment can both (a) solve false positive subtypes and (b) enable discovery of subtle true positive subtypes.
  
 # Step 2: Testing subtypes for heterogeneous covariates
