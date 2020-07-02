@@ -55,12 +55,12 @@ We generate the heterogeneoues covariates and SNPs in one of the simplest ways p
 ```R
 library(rgwas)
 
-N <- 3e3 # sample size
+N <- 5e3 # sample size
 S <- 1e2 # number SNPs
 K <- 2   # number subtypes
 
 z <- sample( K, N, replace=TRUE ) # subtypes
-G0<- matrix( rnorm(N*5), N, 5 )     # null covar
+G0<- matrix( rnorm(N*5), N, 5 )   # null covar
 X <- matrix( rnorm(N), N, 1 )     # hom covar
 G <- matrix( rnorm(N), N, 1 )     # het covar
 snps <- matrix( rbinom(N*S,2,.1), N, S )
@@ -69,13 +69,13 @@ RGWAS aims to recover `z`, the true subtypes used to simulate the data.
 
 The second type of data RGWAS uses are phenotype matrices: `Y` for quantitative traits and `Yb` for binary traits. First, I simulate quantitative traits, again in a very simple (and computationally inefficient!) way:
 ```R
-P   <- 20  # number binary+quantitative traits
+P   <- 30  # number binary+quantitative traits
 Y0  <- matrix( NA, N, P )
 alpha <- rnorm(P) # homogeneoues effects
 beta  <- matrix( rnorm(K*P), K, P )    # heterogeneoues effects
-mus   <- matrix( rnorm(K*P), K, P )
+mus   <- matrix( rnorm(K*P)/2, K, P )
 for( i in 1:N )
-  Y0[i,] <- X[i,] %*% alpha + G[i,] %*% beta[z[i],] + rnorm(P)
+  Y0[i,] <- mus[z[i],] + X[i,] %*% alpha + G[i,] %*% beta[z[i],] + rnorm(P)
 ```
 I added a mean subtype effect which (a) is usually realistic and (b) makes subtyping much easier.
 
@@ -92,10 +92,10 @@ Y   <- scale(Y0[,qphens])
 Now I run MFMR on the traits and covariates. Imaginging that I don't know which columns in `X` and `G` are null, homogeneoues or heterogeneoues, I combine all into `covars` and treat them as putatitively heterogeneoues inside MFMR (the `G` argument). I also add an intercept column to capture mean subtype effects, which are extremely helpful in practice--this is the entire signal driving covariate-unaware methods, like Gaussian mixture models of k-means.
 
 ```R
-covars <- cbind(1,G0,X,G)
-out    <- mfmr( Yb, Y, covars, K=2 )
+covars <- cbind(1,X,G,G0)
+out    <- mfmr( Yb, Y, covars, K=2, nrun=3 )
 ```
-In this extremely simple simulation, MFMR seems to converge to the same likelihood mode for each of the `nrun=10` random restarts. In practice, however, random restarts is usually important: it does not guarantee global likelihood maximization, but it dramatically reduces the probability of obtaining a practically useless mode.
+In this extremely simple simulation, MFMR converges to the same likelihood for each of the `nrun=3` random restarts. In practice, however, random restarts can be esential to increase the likelihood of obtaining a practically useful mode.
 
 ### Assessing subtype estimates
 
@@ -109,20 +109,20 @@ Though intuitive for our example with `K=2` subtypes, simple correlation is not 
 
 I can also see whether MFMR estimated the regression coefficients accurately. First, the homogeneoues effects should resemble the subtype-specific effects estimates in both groups:
 ```R
-# truly-hom column of covars
-qalphahat1 <- out$out$beta[1,3,qphens]
-qalphahat2 <- out$out$beta[2,3,qphens]
-cor( alpha[qphens], qalphahat1 )
-cor( alpha[qphens], qalphahat2 )
+bhats   <- out$out$beta
+
+# 1st component of bhats estimates intercepts:
+cor( mus[1,qphens], bhats[1,1,qphens] )^2
+
+# 2nd component of bhats estimates truly homogenous effects:
+cor( alpha[qphens], bhats[1,2,qphens] )^2
+
+# 3rd component of bhats estimates truly heterogenous effects:
+cor( beta[1,qphens], bhats[1,3,qphens] )^2
+cor( beta[1,qphens], bhats[2,3,qphens] )^2
 ```
 
 To assess the heterogeneoues effects requires matching up the labels in MFMR to the true, simulated labels. I.e. `beta[1,]` may correspond to the estimated `betahat[2,]` because of label swapping. So I just compute the error metrics for each labelling option (because there are only 2 when `K=2`):
-```R
-# truly-het column of covars
-qbetahat <- out$out$beta[1,4,qphens]
-cor( beta[1,qphens], qbetahat )^2
-cor( beta[2,qphens], qbetahat )^2
-```
 
 ## Testing large-effect covariates
 
