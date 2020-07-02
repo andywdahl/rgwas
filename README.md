@@ -1,7 +1,11 @@
 # RGWAS
 
-RGWAS infers subtypes with MFMR and then tests covariates downstream for heterogeneity across subtypes. RGWAS is described in Dahl et al 2019 Plos Genetics: https://doi.org/10.1371/journal.pgen.1008009
+RGWAS is a two-step approach to find and then validate novel subtypes in multi-trait datasets, and is described in detail in Dahl et al 2019 Plos Genetics: https://doi.org/10.1371/journal.pgen.1008009
 
+[Dahl et al 2019 Plos Genetics](https://doi.org/10.1371/journal.pgen.1008009)
+
+
+subtypes with MFMR and then tests covariates downstream for heterogeneity across subtypes. RGWAS 
 
 ## Installation
 R CMD INSTALL rgwas_1.0.tar.gz
