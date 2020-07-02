@@ -9,21 +9,33 @@ We also have unpublished tests for Step 2 when Step 1 is applied only in cases, 
 ## Installation
 R CMD INSTALL rgwas_1.0.tar.gz
 
-## MFMR
+# Step 1: Learning subtypes with MFMR
 
 `mfmr` takes covariates and traits (binary and/or continuous) as input and produces subtypes as output.
 
 The covariates can have different effects in different subtypes, which can be leveraged to improve subtype estimates:
-  ...
-  ,,,,
+  -Traits are assumed to differ in distribution between subtypes.
+  -Covariates are assumed to differ in effects between subtypes (but not necessarily in distribution).
+Intuitively, the goal is to learn structure in the traits after accounting for covariates. This removes confounding structure from the data (eg sex, age, or ethnicity). This adjustment can both (a) solve false positive subtypes and (b) enable discovery of subtle true positive subtypes.
+ 
+# Step 2: Testing subtypes for heterogeneous covariates
 
-## Large-effect covariate test 
+## First scenario: Covariates with small effects
 
-`droptest` performs the RGWAS test for large-effect covariates. It fits MFMR for each covariate in turn, not allowing the tested covariate to have an heterogeneous effect across subtypes in MFMR (which overfits, see Supplementary Figure 1 of our RGWAS paper).
+When covariate effects are small, they can be ignored during the clustering step to infer subtypes. This is important because it enables GWAS-scale tests.
 
-## Small-effect covariate test (MFMRX)
+In this scenario, subtypes from Step 1 are fixed and directly input to `interxn_test`, along with the tested covariate.
 
-`interxn_test` performs the RGWAS test for small-effect covariates, which uses a single fit of MFMR that ignores the tested covariates. This is computationally efficient and enables GWAS-scale tests.
+## Second scenario: Covariates with large effects
+
+When covariate effects are large, they cannot be ignored during clustering and can bias inferred subtypes due to overfitting.
+
+In this scenario, `droptest` should be used, which internally re-fits the subtypes for each covariate to avoid overfitting with a score-like test. 
+
+Note: these tests do not directly correspond to the subtypes inferred in Step 1, because this would cause overfitting. Nonetheless, this provides a calibrated test for covariate heterogeneity that can be used for the subtypes which are inferred in Step 1. This technical complexity is essential for calibrated inference, but is not conceptually important.
+
+## Third scenario: Case-only subtypes
+
 
 # Example analysis of simple simulated data
 
