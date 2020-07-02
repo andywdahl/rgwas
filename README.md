@@ -1,10 +1,10 @@
 # RGWAS
 
-RGWAS is a two-step approach to find and validate novel subtypes in multi-trait datasets, and is described in [Dahl et al 2019 Plos Genetics](https://doi.org/10.1371/journal.pgen.1008009):
+RGWAS is a two-step approach to find and validate novel subtypes in multi-trait datasets:
 1. Find subtypes by clustering traits with `mfmr`
 2. Validate subtypes by testing for subtype-specific covariate effects with `droptest` or `interxn_test`
 
-We also have unpublished tests for Step 2 when Step 1 is applied only in cases, which allows disease subtyping (Scenario 3 below).
+RGWAS is described fully in [Dahl et al 2019 Plos Genetics](https://doi.org/10.1371/journal.pgen.1008009). We also have unpublished tests for Step 2 when Step 1 is applied only in cases, which allows disease subtyping (Scenario 3 below).
 
 ## Installation
 R CMD INSTALL rgwas_1.0.tar.gz
