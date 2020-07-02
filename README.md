@@ -1,6 +1,6 @@
 # RGWAS
 
-RGWAS is a two-step approach to find and then validate novel subtypes in multi-trait datasets, and is described in detail in [Dahl et al 2019 Plos Genetics](https://doi.org/10.1371/journal.pgen.1008009)
+RGWAS is a two-step approach to find and then validate novel subtypes in multi-trait datasets, and is described in [Dahl et al 2019 Plos Genetics](https://doi.org/10.1371/journal.pgen.1008009)
 
 There are two key steps: Step 1 is to fit subtypes with `mfmr`; Step 2 is to test covariates for subtype-specific effects with `droptest` or `interxn_test`.
 
@@ -20,13 +20,13 @@ Intuitively, the goal is to learn structure in the traits after accounting for c
  
 # Step 2: Testing subtypes for heterogeneous covariates
 
-## First scenario: Covariates with small effects
+## Scenario 1: Covariates with small effects
 
 When covariate effects are small, they can be ignored during the clustering step to infer subtypes. This is important because it enables GWAS-scale tests.
 
 In this scenario, subtypes from Step 1 are fixed and directly input to `interxn_test`, along with the tested covariate.
 
-## Second scenario: Covariates with large effects
+## Scenario 2: Covariates with large effects
 
 When covariate effects are large, they cannot be ignored during clustering and can bias inferred subtypes due to overfitting.
 
@@ -34,8 +34,13 @@ In this scenario, `droptest` should be used, which internally re-fits the subtyp
 
 Note: these tests do not directly correspond to the subtypes inferred in Step 1, because this would cause overfitting. Nonetheless, this provides a calibrated test for covariate heterogeneity that can be used for the subtypes which are inferred in Step 1. This technical complexity is essential for calibrated inference, but is not conceptually important.
 
-## Third scenario: Case-only subtypes
+## Scenario 3: Case-only subtypes
 
+In case/control datasets with multiple measured secondary traits, it is possible to specifically learn subtypes of only the cases in Step 1. This is especially useful for case-only secondary traits (e.g. drug response, or tumor features).
+
+In this scenario, the above interaction tests are meaningless, as subtype status is perfectly collinear with case/control status. Instead, we propose tests based on multinomial logistic regression. This enables testing whether a covariate differentially pushes people towards a particular disease subtype. For example, BMI is likely a more salient risk factor for type 2 diabetes than type 1 diabetes. 
+
+Note: This approach is susceptible to detecting disease-irrelevant differences between subtypes, e.g. [hair color-based subtypes of T2D](https://www.nature.com/articles/ng.3751).
 
 # Example analysis of simple simulated data
 
