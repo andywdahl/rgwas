@@ -100,8 +100,7 @@ Note: In this simple simulation, MFMR converges to the same likelihood for each 
 
 The R-squared between true subtypes and the estimated subtype probabilities is:
 ```R
-cor( out$pmat[,1], z )^2
-[1] 0.9748958
+cor( out$pmat[,1], z )^2                   # [1] 0.9748958
 ```
 
 To check that MFMR estimates the regression coefficients accurately:
@@ -109,14 +108,14 @@ To check that MFMR estimates the regression coefficients accurately:
 bhats   <- out$out$beta
 
 # 1st component of bhats estimates intercepts:
-cor( mus[1,qphens], bhats[1,1,qphens] )^2    # [1] 0.5339208
+cor( mus[1,qphens], bhats[1,1,qphens] )^2  # [1] 0.5339208
 
 # 2nd component of bhats estimates truly homogenous effects:
-cor( alpha[qphens], bhats[1,2,qphens] )^2    # [1] 0.9557434
+cor( alpha[qphens], bhats[1,2,qphens] )^2  # [1] 0.9557434
 
 # 3rd component of bhats estimates truly heterogenous effects:
-cor( beta[1,qphens], bhats[1,3,qphens] )^2   # [1] 0.9725267
-cor( beta[1,qphens], bhats[2,3,qphens] )^2   # [1] 0.04442622
+cor( beta[1,qphens], bhats[1,3,qphens] )^2 # [1] 0.9725267
+cor( beta[1,qphens], bhats[2,3,qphens] )^2 # [1] 0.04442622
 ```
 Some notes:
 - Though intuitive for `K=2` subtypes, correlation is not generally appropriate for comparing proportions.
