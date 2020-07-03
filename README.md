@@ -208,18 +208,17 @@ Choosing K is not generally straightforward. Ultimately, we heavily rely on simu
 
 For modest sample sizes (eg <10K), we recommend choosing K to maximize cross-validated likelihood with `score_K`:
 ```R 
-meanll  <- numeric(3)
+mean_ll  <- numeric(3)
 for( K in 1:3 )
-  meanll[K]       <- mean( score_K( G=covars, Yb=Yb, Yq=Yq, K=K, n.folds=3 )[,1] ) ### n.folds=3 just for illustration
-meanll # [1] -51080.62 -48649.89 -48727.61
+  mean_ll[K]       <- mean( score_K( G=covars, Yb=Yb, Yq=Yq, K=K, n.folds=3, nrun=3 )[,1] ) ### n.folds=3 just for illustration
+mean_ll # [1] -51080.62 -48649.89 -48727.61
 ```
 Note: This liable to overfit K as the penalty for superfluous clusters is low (eg there is no likelihood cost to adding a cluster with weight 0). 
 
-Robust lower bounds on K can be established with prediction strength metrics. However, this can be conservative because it requires splitting the data into halves. But, for larger sample sizes, this can be robust and is implemented in `score_K_ps`:
+Robust lower bounds on K can be established with prediction strength metrics. However, this can be conservative because it requires splitting the data into halves. But, for larger sample sizes (or simple simulations like this), prediction strength can be a powerful way of robustly demonstrating that at least `K` subtypes exist and is implemented in `score_K_ps`:
 ```R 
-meanll  <- numeric(3)
-for( K in 1:3 
-  meanll[K]       <- mean( score_K_ps( G=covars, Yb=Yb, Yq=Yq, K=K, n.folds=3 )[,1] ) ### n.folds=3 just for illustration
-meanll # [1] -51080.62 -48649.89 -48727.61
+mean_ps  <- numeric(3)
+for( K in 2:3 )
+  mean_ps[K]       <- mean( score_K_ps( G=covars, Yb=Yb, Yq=Yq, K=K, n.folds=3, nrun=3 ) ) ### n.folds=3 just for illustration
+mean_ps # [1] -51080.62 -48649.89 -48727.61
 ```
-
