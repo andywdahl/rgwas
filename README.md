@@ -33,7 +33,7 @@ When covariate effects are large, they cannot be ignored during clustering and c
 
 In this scenario, `droptest` should be used, which internally re-fits the subtypes for each covariate to avoid overfitting with a score-like test. 
 
-Note: these tests do not directly correspond to the subtypes inferred in Step 1, because this would cause overfitting. Nonetheless, this provides a calibrated test for covariate heterogeneity that can be used for the subtypes which are inferred in Step 1. This technical complexity is essential for calibrated inference, but is not conceptually important.
+Note: these tests do not directly correspond to the subtypes inferred in Step 1, which would cause overfitting. Nonetheless, this provides a calibrated test for covariate heterogeneity that can be used for the subtypes which are inferred in Step 1. This technical complexity is essential for calibrated inference, but is not conceptually important.
 
 ## Scenario 3: Case-only subtypes
 
@@ -109,18 +109,14 @@ To check that MFMR estimates the regression coefficients accurately:
 bhats   <- out$out$beta
 
 # 1st component of bhats estimates intercepts:
-cor( mus[1,qphens], bhats[1,1,qphens] )^2
-[1] 0.5339208
+cor( mus[1,qphens], bhats[1,1,qphens] )^2    # [1] 0.5339208
 
 # 2nd component of bhats estimates truly homogenous effects:
-cor( alpha[qphens], bhats[1,2,qphens] )^2
-[1] 0.9557434
+cor( alpha[qphens], bhats[1,2,qphens] )^2    # [1] 0.9557434
 
 # 3rd component of bhats estimates truly heterogenous effects:
-cor( beta[1,qphens], bhats[1,3,qphens] )^2
-[1] 0.9725267
-cor( beta[1,qphens], bhats[2,3,qphens] )^2
-[1] 0.04442622
+cor( beta[1,qphens], bhats[1,3,qphens] )^2   # [1] 0.9725267
+cor( beta[1,qphens], bhats[2,3,qphens] )^2   # [1] 0.04442622
 ```
 Some notes:
 -Though intuitive for our example with `K=2` subtypes, correlation is not generally a useful metric for assessing similarity between proportions.
@@ -136,24 +132,24 @@ Covariates with broad phenotypic effects are difficult to test because they can 
 dropout  <- droptest( Yb, Yq, covars, test_inds=2:4, K=2 )
 
 ### Effects for X and G truly exist and test should be non-null:
-quantile( dropout$pvals['Hom',2:3,qphens] ) # all truly alt
-           0%           25%           50%           75%          100% 
- 0.000000e+00  0.000000e+00 4.062414e-278  3.367239e-73  6.501983e-01 
+quantile( dropout$pvals['Hom',2:3,qphens] )
+#           0%           25%           50%           75%          100% 
+# 0.000000e+00  0.000000e+00 4.062414e-278  3.367239e-73  6.501983e-01 
 
 ### Effects for X and G truly do not exist and test should be null:
 quantile( dropout$pvals['Hom',4. ,qphens] )
-        0%        25%        50%        75%       100% 
-0.03665779 0.22945576 0.52966551 0.71049620 0.98079611 
+#         0%        25%        50%        75%       100% 
+# 0.03665779 0.22945576 0.52966551 0.71049620 0.98079611 
 
 ### Effects for X are truly Hom and so Het test should be null:
 quantile( dropout$pvals['Het',2,qphens] )
-        0%        25%        50%        75%       100% 
-0.01771635 0.27058785 0.48521272 0.71587194 0.98876730 
+#         0%        25%        50%        75%       100% 
+# 0.01771635 0.27058785 0.48521272 0.71587194 0.98876730 
 
 ### Effects for X are truly Het and so Het test should be non-null:
 quantile( dropout$pvals['Het',3,qphens] ) 
-          0%          25%          50%          75%         100% 
-3.802443e-14 1.232082e-08 2.247578e-04 2.369354e-01 6.692128e-01 
+#           0%          25%          50%          75%         100% 
+# 3.802443e-14 1.232082e-08 2.247578e-04 2.369354e-01 6.692128e-01 
 ```
 
 ## Testing small-effect covariates
@@ -211,8 +207,7 @@ For modest sample sizes (eg <10K), we recommend choosing K to maximize out-of-sa
 meanll  <- numeric(3)
 for( K in 1:3 )
         meanll[K]       <- mean( score_K( G=covars, Yb=Yb, Yq=Yq, K=K, n.folds=3 )[,1] ) ### n.folds=3 just for illustration
-meanll # maximized at K=2, which is true in this simple simulation
-[1] -51080.62 -48649.89 -48727.61
+meanll # [1] -51080.62 -48649.89 -48727.61
 ```
 Note this liable to fit K that is too large, as the penalty for superfluous clusters is low (eg there is no likelihood cost to adding a cluster with weight 0). We prefer to err on the side of conservatism, meaning choosing lower values of K when multiple choices of K give similar likelihoods.
 
