@@ -119,7 +119,7 @@ cor( beta[1,qphens], bhats[1,3,qphens] )^2   # [1] 0.9725267
 cor( beta[1,qphens], bhats[2,3,qphens] )^2   # [1] 0.04442622
 ```
 Some notes:
-- Though intuitive for our example with `K=2` subtypes, correlation is not generally a useful metric for assessing similarity between proportions.
+- Though intuitive for `K=2` subtypes, correlation is not generally appropriate for comparing proportions.
 - The correlation is calculated specifically on the quantitative phenotypes to avoid worrying about the liability scale transformation, but similar results are obtained by examining `bphens` instead.
 - The mean effects in `mus` are correlated with `bhats` for either subtype because the phenotypes are centered.
 - The homogeneous effects in `alpha` are correlated with `bhats` for either subtype.
