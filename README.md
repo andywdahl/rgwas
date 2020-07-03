@@ -210,7 +210,7 @@ For modest sample sizes (eg <10K), we recommend choosing K to maximize cross-val
 ```R 
 mean_ll  <- numeric(3)
 for( K in 1:3 )
-  mean_ll[K]       <- mean( score_K( G=covars, Yb=Yb, Yq=Yq, K=K, n.folds=3, nrun=3 )[,1] ) ### n.folds=3 just for illustration
+  mean_ll[K]       <- mean( score_K( G=covars, Yb=Yb, Yq=Yq, K=K, n.folds=3, nrun=3 )[,'oos_ll'] ) ### n.folds=3 and nrun=3 are just for illustration
 mean_ll # [1] -51080.62 -48649.89 -48727.61
 ```
 Note: This liable to overfit K as the penalty for superfluous clusters is low (eg there is no likelihood cost to adding a cluster with weight 0). 
@@ -219,6 +219,6 @@ Robust lower bounds on K can be established with prediction strength metrics. Ho
 ```R 
 mean_ps  <- numeric(3)
 for( K in 2:3 )
-  mean_ps[K]       <- mean( score_K_ps( G=covars, Yb=Yb, Yq=Yq, K=K, n.folds=3, nrun=3 ) ) ### n.folds=3 just for illustration
-mean_ps # [1] -51080.62 -48649.89 -48727.61
+  mean_ps[K]       <- mean( score_K_ps( G=covars, Yb=Yb, Yq=Yq, K=K, n.folds=3, nrun=3 ) )
+mean_ps # [1] 0.0000000 0.9890182 0.7707128
 ```
