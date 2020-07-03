@@ -214,9 +214,9 @@ For modest sample sizes (eg <10K), we recommend choosing K to maximize out-of-sa
 ```R 
 meanll  <- numeric(3)
 for( K in 1:3 )
-        meanll[K]       <- median( score_K( G=covars, Yb=Yb, Yq=Yq, K=K, n.folds=3 )[,1] ) ### n.folds=3 just for illustration
+        meanll[K]       <- mean( score_K( G=covars, Yb=Yb, Yq=Yq, K=K, n.folds=3 )[,1] ) ### n.folds=3 just for illustration
 meanll # maximized at K=2, which is true in this simple simulation
-[1] -50830.55 -48382.29 -48470.90
+[1] -51080.62 -48649.89 -48727.61
 ```
 Note this liable to fit K that is too large, as the penalty for superfluous clusters is low (eg there is no likelihood cost to adding a cluster with weight 0). We prefer to err on the side of conservatism, meaning choosing lower values of K when multiple choices of K give similar likelihoods.
 
