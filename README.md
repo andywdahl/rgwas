@@ -49,9 +49,7 @@ Note: This approach is susceptible to detecting disease-irrelevant differences b
 
 ## Simulating data
 
-RGWAS relies on several different data matrices. First, the covariates are partitioned based on whether their effects are homogeneoues (`X`), heterogeneoues (`G`), or negligible (`snps`). In practice, we usually take `X` to be null, because including homogeneoues covariates in `G` does not cause problems in our simulations (Dahl et al. 2018).
-
-We generate the heterogeneoues covariates and SNPs in one of the simplest ways possible:
+I simulate covariates that are null (`G0`), homogeneoues (`X`), heterogeneoues (`G`), or negligible (`snps`):
 ```R
 set.seed(1234)
 library(rgwas)
@@ -66,9 +64,8 @@ X <- matrix( rnorm(N), N, 1 )     # hom covar
 G <- matrix( rnorm(N), N, 1 )     # het covar
 snps <- matrix( rbinom(N*S,2,.1), N, S )
 ```
-RGWAS aims to recover `z`, the true subtypes used to simulate the data.
 
-The second type of data RGWAS uses are phenotype matrices: `Y` for quantitative traits and `Yb` for binary traits. First, I simulate quantitative traits, again in a very simple (and computationally inefficient!) way:
+I now simulate quantitative phenotypes using these covariates:
 ```R
 P   <- 30  # number binary+quantitative traits
 Y0  <- matrix( NA, N, P )
@@ -78,7 +75,9 @@ mus   <- matrix( rnorm(K*P)/2, K, P )
 for( i in 1:N )
   Y0[i,] <- mus[z[i],] + X[i,] %*% alpha + G[i,] %*% beta[z[i],] + rnorm(P)
 ```
-I added a mean subtype effect which (a) is usually realistic and (b) makes subtyping much easier.
+The goal of RGWAS is to recover the true subtypes `z` and  effects sizes `alpha` and `beta` in Step 1. In Step 2, the goal of RGWAS is to test whether the covariate effects are truly heterogeneous, i.e. to distinguish `alpha` and `beta`.
+
+Note: I added subtype-specific means (`mus`), which is usually realistic and makes subtyping much easier. In particular, methods like Gaussian Mixture Models and k-means effectively use only the signal in `mus` to learn subtypes.
 
 To make binary traits, I'll treat some columns of `Y0` as liabilities and threshold them:
 ```R
@@ -88,26 +87,22 @@ Yb  <- apply( Y0[,bphens], 2, function(y) as.numeric( y > quantile(y,.8) ) )
 Yq  <- scale(Y0[,qphens])
 ```
 
-## Running MFMR
+## Step 1: Running MFMR
 
-Now I run MFMR on the traits and covariates. Imaginging that I don't know which columns in `X` and `G` are null, homogeneoues or heterogeneoues, I combine all into `covars` and treat them as putatitively heterogeneoues inside MFMR (the `G` argument). I also add an intercept column to capture mean subtype effects, which are extremely helpful in practice--this is the entire signal driving covariate-unaware methods, like Gaussian mixture models of k-means.
-
+Now I run MFMR on the traits and covariates. All covariates are lumped together into `covars` and treated as heterogeneous by MFMR--in practice, it is not known which covariates are null/homogeneous/heterogeneous a priori:
 ```R
 covars <- cbind(1,X,G,G0)
 out    <- mfmr( Yb, Yq, covars, K=2, nrun=3 )
 ```
-In this extremely simple simulation, MFMR converges to the same likelihood for each of the `nrun=3` random restarts. In practice, however, random restarts can be esential to increase the likelihood of obtaining a practically useful mode.
+Note: In this simple simulation, MFMR converges to the same likelihood for each of the `nrun=3` random restarts. In practice, however, random restarts are important to consistently obtain useful solutions.
 
-### Assessing subtype estimates
+### Assessing the MFMR fit
 
-To see whether MFMR provides a reasonable estimate of the subtypes, I calculate the R-squared between true and estimated subtype probabilities:
+The R-squared between true subtypes and the estimated subtype probabilities is:
 ```R
 cor( out$pmat[,1], z )^2
 [1] 0.9748958
 ```
-Though intuitive for our example with `K=2` subtypes, simple correlation is not generally a useful metric for assessing similarity between proportions.
-
-### Assessing regression estimates
 
 To check that MFMR estimates the regression coefficients accurately:
 ```R
@@ -128,6 +123,7 @@ cor( beta[1,qphens], bhats[2,3,qphens] )^2
 [1] 0.04442622
 ```
 Some notes:
+-Though intuitive for our example with `K=2` subtypes, correlation is not generally a useful metric for assessing similarity between proportions.
 -The correlation is calculated specifically on the quantitative phenotypes to avoid worrying about the liability scale transformation, but similar results are obtained by examining `bphens` instead.
 -The mean effects in `mus` are correlated with `bhats` for either subtype because the phenotypes are centered.
 -The homogeneous effects in `alpha` are correlated with `bhats` for either subtype.
