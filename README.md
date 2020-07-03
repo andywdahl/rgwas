@@ -85,7 +85,7 @@ To make binary traits, I'll treat some columns of `Y0` as liabilities and thresh
 bphens <- 1:3
 qphens <- 4:P
 Yb  <- apply( Y0[,bphens], 2, function(y) as.numeric( y > quantile(y,.8) ) )
-Y   <- scale(Y0[,qphens])
+Yq  <- scale(Y0[,qphens])
 ```
 
 ## Running MFMR
@@ -94,7 +94,7 @@ Now I run MFMR on the traits and covariates. Imaginging that I don't know which 
 
 ```R
 covars <- cbind(1,X,G,G0)
-out    <- mfmr( Yb, Y, covars, K=2, nrun=3 )
+out    <- mfmr( Yb, Yq, covars, K=2, nrun=3 )
 ```
 In this extremely simple simulation, MFMR converges to the same likelihood for each of the `nrun=3` random restarts. In practice, however, random restarts can be esential to increase the likelihood of obtaining a practically useful mode.
 
@@ -137,7 +137,7 @@ Some notes:
 
 Covariates with broad phenotypic effects are difficult to test because they can perturb subtype estimates if improperly modelled. Our proposal is to refit MFMR for each tested large-effect covariate in turn, treating the tested covariate as homogeneoues within MFMR to balance over- and under-fitting the covariate effect (see our paper for details). In practice, this means the test is best performed with a specialized for loop, which I implemented in `droptest`:
 ```R
-dropout  <- droptest( Yb, Y, covars, test_inds=2:4, K=2 )
+dropout  <- droptest( Yb, Yq, covars, test_inds=2:4, K=2 )
 
 ### Effects for X and G truly exist and test should be non-null:
 quantile( dropout$pvals['Hom',2:3,qphens] ) # all truly alt
@@ -181,12 +181,12 @@ This can be performed for all traits with an `apply` function (e.g. mclapply fro
 To simulate true positive results for SNP heterogeneity, I add a small effects of SNP 1: a homogeneoues effect on quantitative trait 2, and a heterogeneoues effect on quantitative trait 1:
 ```R 
 # scale so effect sizes are more easily interpretable
-Y    <- scale(Y) 
+Yq   <- scale(Yq) 
 snps <- scale(snps)
 
 # add small g effect to first two quantitative traits
-Y[z==1,1]<- Y[z==1,1] + snps[z==1,1] * .05 * sqrt(2) # het
-Y[    ,2]<- Y[    ,2] + snps[    ,1] * .05           # hom
+Yq[z==1,1]<- Yq[z==1,1] + snps[z==1,1] * .05 * sqrt(2) # het
+Yq[    ,2]<- Yq[    ,2] + snps[    ,1] * .05           # hom
 
 # refit pmat with new, perturbed phens
 out <- mfmr( Yb, Y, covars, K=2 )
@@ -214,9 +214,9 @@ For modest sample sizes (eg <10K), we recommend choosing K to maximize out-of-sa
 ```R 
 meanll  <- numeric(3)
 for( K in 1:3 )
-        meanll[K]       <- median( score_K( G=cbind(G,G0), X=X, Yb=Yb, Yq=Y, K=K, n.folds=3 )[,1] ) ### n.folds=3 just for illustration
+        meanll[K]       <- median( score_K( G=covars, Yb=Yb, Yq=Yq, K=K, n.folds=3 )[,1] ) ### n.folds=3 just for illustration
 meanll # maximized at K=2, which is true in this simple simulation
-[1] -22046.82 -21375.95 -21549.32
+[1] -50830.55 -48382.29 -48470.90
 ```
 Note this liable to fit K that is too large, as the penalty for superfluous clusters is low (eg there is no likelihood cost to adding a cluster with weight 0). We prefer to err on the side of conservatism, meaning choosing lower values of K when multiple choices of K give similar likelihoods.
 
