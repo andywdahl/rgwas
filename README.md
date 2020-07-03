@@ -124,7 +124,9 @@ Some notes:
 - The homogeneous effects in `alpha` are correlated with `bhats` for either subtype.
 - The heterogeneous effects in `beta` are only correlated with `bhats` for one subtype. Due to label switching, the true subtype labels may not match inferred subtype labels--i.e. `beta[1,]` may match `bhats[1,3,]` or `bhats[2,3,]`.
 
-## Testing large-effect covariates
+## Step 2: Testing covariate heterogeneity
+
+### Testing large-effect covariates
 
 Covariates with large effects are difficult to test because they perturb subtype estimates. To balance over- and under-fitting this effect, RGWAS refits MFMR while treating the tested covariate as homogeneoues. This is implemented in `droptest`:
 ```R
@@ -151,9 +153,9 @@ quantile( dropout$pvals['Het',3,qphens] )
 # 3.802443e-14 1.232082e-08 2.247578e-04 2.369354e-01 6.692128e-01 
 ```
 
-## Testing small-effect covariates
+### Testing small-effect covariates
 
-Covariates with negligible phenotypic effects, on the other hand, can be ignored when fitting MFMR. This is very similar to fitting linear mixed models with variance components learned assuming each individual SNP has roughly zero effect. In this scenario, testing can be done independently of fitting MFMR. So I take the original MFMR fit, treating all covariates in `covars` as heterogeneoues, i.e. `out`. Then, using these subtypes, I perform standard fixed effect tests for SNP-subtype interaction:
+Covariates with small effects do not meaningfully perturb subtype estimates and can be ignored when fitting MFMR. (EMMAX)[https://www.nature.com/articles/ng.548] leverages a similar idea to expedite linear mixed models for GWAS. In this scenario, testing can be done independently of fitting MFMR. So I take the original MFMR fit, treating all covariates in `covars` as heterogeneoues, i.e. `out`. Then, using these subtypes, I perform standard fixed effect tests for SNP-subtype interaction:
 ```R 
 # condition on all covariate-subtype interactions with Khatri-Rao product:
 covars_x_E  <- t(sapply( 1:N, function(i) covars[i,,drop=FALSE] %x% out$pmat[i,,drop=FALSE] ))
