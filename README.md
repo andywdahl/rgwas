@@ -119,15 +119,15 @@ cor( beta[1,qphens], bhats[1,3,qphens] )^2   # [1] 0.9725267
 cor( beta[1,qphens], bhats[2,3,qphens] )^2   # [1] 0.04442622
 ```
 Some notes:
--Though intuitive for our example with `K=2` subtypes, correlation is not generally a useful metric for assessing similarity between proportions.
--The correlation is calculated specifically on the quantitative phenotypes to avoid worrying about the liability scale transformation, but similar results are obtained by examining `bphens` instead.
--The mean effects in `mus` are correlated with `bhats` for either subtype because the phenotypes are centered.
--The homogeneous effects in `alpha` are correlated with `bhats` for either subtype.
--The heterogeneous effects in `beta` are only correlated with `bhats` for one subtype. Due to label switching, the true subtype labels may not match inferred subtype labels--i.e. `beta[1,]` may match `bhats[1,3,]` or `bhats[2,3,]`.
+- Though intuitive for our example with `K=2` subtypes, correlation is not generally a useful metric for assessing similarity between proportions.
+- The correlation is calculated specifically on the quantitative phenotypes to avoid worrying about the liability scale transformation, but similar results are obtained by examining `bphens` instead.
+- The mean effects in `mus` are correlated with `bhats` for either subtype because the phenotypes are centered.
+- The homogeneous effects in `alpha` are correlated with `bhats` for either subtype.
+- The heterogeneous effects in `beta` are only correlated with `bhats` for one subtype. Due to label switching, the true subtype labels may not match inferred subtype labels--i.e. `beta[1,]` may match `bhats[1,3,]` or `bhats[2,3,]`.
 
 ## Testing large-effect covariates
 
-Covariates with broad phenotypic effects are difficult to test because they can perturb subtype estimates if improperly modelled. Our proposal is to refit MFMR for each tested large-effect covariate in turn, treating the tested covariate as homogeneoues within MFMR to balance over- and under-fitting the covariate effect (see our paper for details). In practice, this means the test is best performed with a specialized for loop, which I implemented in `droptest`:
+Covariates with large effects are difficult to test because they perturb subtype estimates. To balance over- and under-fitting this effect, RGWAS refits MFMR while treating the tested covariate as homogeneoues. This is implemented in `droptest`:
 ```R
 dropout  <- droptest( Yb, Yq, covars, test_inds=2:4, K=2 )
 
