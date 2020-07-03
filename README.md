@@ -155,7 +155,7 @@ quantile( dropout$pvals['Het',3,qphens] )
 
 ### Testing small-effect covariates
 
-Covariates with small effects do not meaningfully perturb subtype estimates and can be ignored when fitting MFMR. (EMMAX)[https://www.nature.com/articles/ng.548] leverages a similar idea to expedite linear mixed models for GWAS. In this scenario, testing can be done independently of fitting MFMR. So I take the original MFMR fit, treating all covariates in `covars` as heterogeneoues, i.e. `out`. Then, using these subtypes, I perform standard fixed effect tests for SNP-subtype interaction:
+Covariates with small effects do not meaningfully perturb subtype estimates and can be ignored when fitting MFMR. [EMMAX](https://www.nature.com/articles/ng.548) leverages a similar idea to expedite linear mixed models for GWAS. Therefore, RGWAS uses the original MFMR fit and performs standard fixed effect tests for SNP-subtype interaction:
 ```R 
 # condition on all covariate-subtype interactions with Khatri-Rao product:
 covars_x_E  <- t(sapply( 1:N, function(i) covars[i,,drop=FALSE] %x% out$pmat[i,,drop=FALSE] ))
@@ -170,6 +170,9 @@ ks.test( pvalsb['Hom',] )
 ks.test( pvalsb['Het',] )
 ```
 This can be performed for all traits with an `apply` function (e.g. mclapply from the `parallel` R package) or for loop. Because MFMR does not need to be refit, testing with `interxn_tst` just amounts to performing t/F-tests for linear/logistic regression, for which `interxn_tst` is essentially just a (hopefully) helpful interface.
+
+Note: In this example, I adjust for all MFMR covariates in `covars` and conservatively treat them as heterogeneoues.
+
 
 To simulate true positive results for SNP heterogeneity, I add a small effects of SNP 1: a homogeneoues effect on quantitative trait 2, and a heterogeneoues effect on quantitative trait 1:
 ```R 
