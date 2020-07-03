@@ -6,7 +6,7 @@ RGWAS is a two-step approach to find and validate novel subtypes in multi-trait 
 
 RGWAS is described fully in [Dahl et al 2019 Plos Genetics](https://doi.org/10.1371/journal.pgen.1008009). We also have unpublished tests for Step 2 when Step 1 is applied only in cases, which allows disease subtyping (Scenario 3 below).
 
-## Installation
+### Installation
 R CMD INSTALL rgwas_1.0.tar.gz
 
 # Step 1: Learning subtypes with MFMR
@@ -204,15 +204,22 @@ ks.test( pvalsq2['Het',-1], 'punif' )$p
 
 ## Choosing the number of subtypes (K)
 
-Choosing K is not generally straightforward. Ultimately, we heavily rely on simulations in Dahl et al 2019 Plos Gen that suggest downstream inference is calibrated for any (reasonble) choice of K, and our goal in choosing K is to maximize power. We strongly suggest sensitivity analyses in practice, meaning evaluating results after increasing or decreasing K by 1.
+Choosing K is not generally straightforward. Ultimately, we heavily rely on simulations in Dahl et al 2019 Plos Gen that suggest downstream inference is calibrated for any (reasonble) choice of K, and we view choosing K as maximizing power. We prefer to err on the side of conservatism, meaning choosing lower values of K when multiple choices of K give similar likelihoods. Further, we strongly suggest sensitivity analyses in practice, meaning evaluating results after increasing or decreasing K by 1.
 
-For modest sample sizes (eg <10K), we recommend choosing K to maximize out-of-sample likelihood. This can be accomplished with `score_K`, which performs `n.fold`-fold cross-validation:
+For modest sample sizes (eg <10K), we recommend choosing K to maximize cross-validated likelihood with `score_K`:
 ```R 
 meanll  <- numeric(3)
 for( K in 1:3 )
-        meanll[K]       <- mean( score_K( G=covars, Yb=Yb, Yq=Yq, K=K, n.folds=3 )[,1] ) ### n.folds=3 just for illustration
+  meanll[K]       <- mean( score_K( G=covars, Yb=Yb, Yq=Yq, K=K, n.folds=3 )[,1] ) ### n.folds=3 just for illustration
 meanll # [1] -51080.62 -48649.89 -48727.61
 ```
-Note this liable to fit K that is too large, as the penalty for superfluous clusters is low (eg there is no likelihood cost to adding a cluster with weight 0). We prefer to err on the side of conservatism, meaning choosing lower values of K when multiple choices of K give similar likelihoods.
+Note: This liable to overfit K as the penalty for superfluous clusters is low (eg there is no likelihood cost to adding a cluster with weight 0). 
 
-Robust lower bounds on K can be established with prediction strength metrics at large sample sizes. However, this comes at the cost of splitting the sample into halves, which can be prohibitive for small sample sizes.
+Robust lower bounds on K can be established with prediction strength metrics. However, this can be conservative because it requires splitting the data into halves. But, for larger sample sizes, this can be robust and is implemented in `score_K_ps`:
+```R 
+meanll  <- numeric(3)
+for( K in 1:3 
+  meanll[K]       <- mean( score_K_ps( G=covars, Yb=Yb, Yq=Yq, K=K, n.folds=3 )[,1] ) ### n.folds=3 just for illustration
+meanll # [1] -51080.62 -48649.89 -48727.61
+```
+
