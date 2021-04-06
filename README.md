@@ -161,7 +161,7 @@ Covariates with small effects do not meaningfully perturb subtype estimates and 
 covars_x_E  <- t(sapply( 1:N, function(i) covars[i,,drop=FALSE] %x% out$pmat[i,,drop=FALSE] ))
 
 pmat   <- out$pmat[,-1,drop=FALSE] # full-rank version of pmat
-pvalsq <- apply( snps, 2, function(g) interxn_test( covars_x_E, Y[,1], g, pmat, bin=FALSE )$pvals )
+pvalsq <- apply( snps, 2, function(g) interxn_test( covars_x_E, Yq[,1], g, pmat, bin=FALSE )$pvals )
 ks.test( pvalsq['Hom',] )
 ks.test( pvalsq['Het',] )
 
@@ -189,8 +189,8 @@ out <- mfmr( Yb, Y, covars, K=2 )
 
 # test with new pmat and phens
 pmat    <- out$pmat[,-1,drop=FALSE] # full-rank version of pmat
-pvalsq1 <- apply( snps, 2, function(g) interxn_test( covars_x_E, Y[,1], g, pmat, bin=FALSE )$pvals )
-pvalsq2 <- apply( snps, 2, function(g) interxn_test( covars_x_E, Y[,2], g, pmat, bin=FALSE )$pvals )
+pvalsq1 <- apply( snps, 2, function(g) interxn_test( covars_x_E, Yq[,1], g, pmat, bin=FALSE )$pvals )
+pvalsq2 <- apply( snps, 2, function(g) interxn_test( covars_x_E, Yq[,2], g, pmat, bin=FALSE )$pvals )
 
 pvalsq1[,1] # signif for Hom and Het
 pvalsq2[,1] # signif for Hom only
