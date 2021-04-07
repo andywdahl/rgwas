@@ -130,7 +130,7 @@ Some notes:
 
 Covariates with large effects are difficult to test because they perturb subtype estimates. To balance over- and under-fitting this effect, RGWAS refits MFMR while treating the tested covariate as homogeneoues. This is implemented in `droptest`:
 ```R
-dropout  <- droptest( Yb, Yq, covars, test_inds=2:4, K=2 )
+dropout  <- droptest( Yb, Yq, covars, test_inds=2:4, K=2, nrun=3 )
 
 ### Effects for X and G truly exist and test should be non-null:
 quantile( dropout$pvals['Hom',2:3,qphens] )
