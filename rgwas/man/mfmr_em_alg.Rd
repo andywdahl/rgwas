@@ -7,17 +7,17 @@
 
 \usage{
 mfmr_em_alg(
-  Yb, Y, G, X, K, trace,
+  Yb, Yq, G, X, K, trace,
   N, Q, S, P, B,
   pvec, alpha, beta, Sigma,
   maxit=1e3, tol=rep(1e-3,2)
 )
-mfmr_em_alg_hom( Yb, Y, X, trace, maxit=1e3, tol=1e-3 )
+mfmr_em_alg_hom( Yb, Yq, X, trace, maxit=1e3, tol=1e-3, nrun=1 )
 }
 
 \arguments{
   \item{Yb}{NxB matrix of binary traits}
-  \item{Y}{NxP matrix of quantitative traits}
+  \item{Yq}{Nx(P-B) matrix of quantitative traits}
   \item{G}{NxS matrix of heterogeneous covariates}
   \item{X}{NxQ matrix of homogeneous covariates}
   \item{K}{Number of subtypes}
@@ -25,6 +25,7 @@ mfmr_em_alg_hom( Yb, Y, X, trace, maxit=1e3, tol=1e-3 )
   \item{N, Q, S, P, B}{Data dimensions}
   \item{pvec, alpha, beta, Sigma}{Initial parameters}
   \item{maxit}{Maximum ECM iterations before termination}
+  \item{nrun}{Only nrun=1 is supported for hom mode, as it converges better}
   \item{tol}{Convergence tolerance (relative changes in alpha and beta)}
 }
 \value{
@@ -37,5 +38,5 @@ mfmr_em_alg_hom( Yb, Y, X, trace, maxit=1e3, tol=1e-3 )
 \author{Andy Dahl}
 \details{These functions should rarely be called directly. mfmr_em_alg_hom is the K=1 version and reduces to multi-trait regression (with mixed binary and quantitative output variables).}
 %\examples{
-%  mfmr( Y, G )
+%  mfmr( Yq, G )
 %}

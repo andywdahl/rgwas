@@ -1,12 +1,14 @@
 mfmr_em_alg	<- function(
-	Yb, Y, G, X, K, trace,
+	Yb, Yq, G, X, K, trace,
 	N, Q, S, P, B,
 	pvec, alpha, beta, Sigma,
 	maxit=1e3, tol=rep(1e-3,2)
 ){
 
 	if( is.null( Yb ) )
-		return( mfmr_em_alg_nobin( Y, G, X, K, trace, N, Q, S, P, pvec, alpha, beta, Sigma, maxit, tol ) )
+		return( mfmr_em_alg_nobin  ( Yq, G, X, K, trace, N, Q, S, P, pvec, alpha, beta, Sigma, maxit, tol ) )
+	if( is.null( Yq ) )
+		return( mfmr_em_alg_noquant( Yb, G, X, K, trace, N, Q, S, B, pvec, alpha, beta,        maxit, tol ) )
 
 	al_eps	<- 0
 	Xalpha	<- matrix( 0, N, P )
@@ -29,7 +31,7 @@ mfmr_em_alg	<- function(
 		muY		<- array( NA, dim=c(N,K,B) )
 		for( k in 1:K ){
 
- 			qerr			<- Y - Xalpha[,-(1:B)] - G %*% beta[k,,-(1:B)]
+ 			qerr			<- Yq - Xalpha[,-(1:B)] - G %*% beta[k,,-(1:B)]
 			Lam_qerr	<- qerr %*% Lambda_qq
 			mu0				<- Xalpha[,1:B]	+ G %*% beta[k,,1:B] - qerr %*% Cmat
 
@@ -47,7 +49,7 @@ mfmr_em_alg	<- function(
 
 		if( !is.null(X) ){
 			meanmat	<- apply( muY, 3, function(muY_b) rowSums( muY_b * pmat ) )
-			delta		<- cbind( meanmat, Y ) - sapply( 1:P, function(p) rowSums( G * (pmat %*% beta[,,p]) ))
+			delta		<- cbind( meanmat, Yq ) - sapply( 1:P, function(p) rowSums( G * (pmat %*% beta[,,p]) ))
 			alpha		<- XtXiXt %*% delta
 			Xalpha	<- X %*% alpha
 			al_eps	<- sqrt( mean((alpha-olda)^2)/mean(alpha^2) )
@@ -56,13 +58,13 @@ mfmr_em_alg	<- function(
 
 		for( k in 1:K ){
 			xG				<- apply( G, 2, function(g) g*pmat[,k] )
-			beta[k,,]	<- solve( t(G)%*%xG ) %*% t(xG)%*%as.matrix( cbind(muY[,k,],Y) - Xalpha )
+			beta[k,,]	<- solve( t(G)%*%xG ) %*% t(xG)%*%as.matrix( cbind(muY[,k,],Yq) - Xalpha )
 		}
 		be_eps	<- sqrt( mean((beta-oldb)^2)/ mean( sapply( 1:K, function(k) c( beta[k,,] - apply( beta, 2:3, mean ) )^2 ) ) )
 
 		errmat	<- 0
 		for( k in 1:K ){
-			sqrt.err.k	<- apply( cbind(muY[,k,],Y) - Xalpha - G%*%beta[k,,], 2, function(e) e*sqrt(pmat[,k]) )
+			sqrt.err.k	<- apply( cbind(muY[,k,],Yq) - Xalpha - G%*%beta[k,,], 2, function(e) e*sqrt(pmat[,k]) )
 			errmat			<- errmat + t(sqrt.err.k) %*% sqrt.err.k
 		}
 		Shat	<- errmat/N
@@ -77,17 +79,19 @@ mfmr_em_alg	<- function(
 
 	}
 	Sigma	<- Lam2Sig( P, Cmat, Lambda_qq )
-	ll	<- ll_fxn( Yb, Y, Xalpha, G, beta, Sigma, pvec, N, P, K, B )
+	ll	<- ll_fxn( Yb, Yq, Xalpha, G, beta, Sigma, pvec, N, P, K, B )
 	list( pvec=pvec, alpha=alpha, beta=beta, Sigma=Sigma, ll=ll, niter=it, conv=it<maxit )
 }
 
-ll_fxn	<- function( Yb, Y, Xalpha, G, beta, Sigma, pvec, N, P, K, B ){
+ll_fxn	<- function( Yb, Yq, Xalpha, G, beta, Sigma, pvec, N, P, K, B ){
+	if( is.null(Yq) )
+		return( ll_fxn_noquant( Yb, Xalpha, G, beta, pvec, N, B, K ) )
 
 	Lambda_qq		<- solve( Sigma[-(1:B),-(1:B)] )
 
 	all_lls_NxK	<- sapply( 1:K, function(k){
 
-		qerr		<- Y - Xalpha[,-(1:B)] - G %*% beta[k,,-(1:B)]
+		qerr		<- Yq - Xalpha[,-(1:B)] - G %*% beta[k,,-(1:B)]
 		Lam_qerr<- qerr %*% Lambda_qq
 		mu0			<- Xalpha[,1:B]	+ G %*% beta[k,,1:B] + Lam_qerr %*% Sigma[-(1:B),1:B]
 

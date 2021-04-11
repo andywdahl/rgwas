@@ -5,11 +5,12 @@ droptest	<- function(
 	...
 ){
 
-	if( is.null( colnames(Yb) ) ) colnames(Yb)<- paste0( 'Yb'	, 1:ncol(Yb))
-	if( is.null( colnames(Yq) ) ) colnames(Yq)<- paste0( 'Yq'	, 1:ncol(Yq))
-	if( is.null( colnames(G) ) )	colnames(G)	<- paste0( 'G'	, 1:ncol(G) )
+	if( !is.null(Yb) & is.null( colnames(Yb) ) ) 	colnames(Yb)	<- paste0( 'Yb'	, 1:ncol(Yb))
+	if( !is.null(Yq) & is.null( colnames(Yq) ) ) 	colnames(Yq)	<- paste0( 'Yq'	, 1:ncol(Yq))
+	if( !is.null(G ) & is.null( colnames(G ) ) )	colnames(G)	<- paste0( 'G'	, 1:ncol(G) )
+
 	phens	<- c( colnames( Yb ), colnames( Yq ) )
-	P			<- length(phens)
+	P	<- length(phens)
 
 	##### set up fixed out
 	if( mfmrx & is.null(pmat) ){
@@ -33,10 +34,11 @@ droptest	<- function(
 			cat( 'mfmr time:', round( mfmr_time/60, 1 ), 'min.', '\n' )
 		}
 
+
 		##### test
 		Gxpmat	<- t(sapply( 1:nrow(G), function(i) G[i,-test_ind,drop=F] %x% pmat[i,] ))
 		out	<- lapply( 1:P, function(pp){
-			bin	<- (pp <= ncol(Yb))
+			bin	<- ifelse( is.null(Yb), FALSE, (pp <= ncol(Yb)) )
 			y		<- cbind( Yb, Yq )[,pp]
 			out1	<- interxn_test( X=cbind( X, pmat[,-K,drop=F], Gxpmat ), y=y, g=G[,test_ind], pmat=pmat[,-K,drop=F], bin=bin )
 			list( pvals=out1$pvals, summ=summary( out1$fit )$coef )

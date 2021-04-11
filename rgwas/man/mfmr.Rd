@@ -9,7 +9,7 @@ mfmr(
   Yb, Yq, G, X=NULL, K,
   nrun=10, init_sd=1e-2, seeds=1:nrun+898,
   mc.cores=1,
-  trace=F,
+  trace=FALSE,
   ...
 )
 }
@@ -38,14 +38,18 @@ mfmr(
 \note{Currently, both Yb and Yq must be provided.}
 \details{The covariates (X and G) should contain variables that may confound the primary subtype structure, e.g. sex or population structure. The traits (Yb and Yq) should contain variables that differ in distribution between subtypes. G should usually contain a constant column for main subtype effects. X is mostly used for internal purposes (in droptest) and should usually be omitted.}
 \examples{
-N <- 5000
-P <- 27
-B <- 3
+
+N <- 1e4
+P <- 10
+B <- 10
+
+S <- 2
+
 z <- rep( 1:2, each=N/2 ) # subtypes
 
-G <- matrix( rnorm( N*3 ), N, 3 ) # covariates
-beta1 <- matrix( rnorm(3*P), 3, P )
-beta2 <- matrix( rnorm(3*P), 3, P )
+G <- matrix( rnorm( N*S ), N, S ) # covariates
+beta1 <- matrix( rnorm(S*P), S, P )
+beta2 <- matrix( rnorm(S*P), S, P )
 
 # quantitative traits
 Yq  <- matrix( NA, N, P )
@@ -55,21 +59,30 @@ Yq <- scale(Yq)
 
 # binary traits
 Yb  <- matrix( NA, N, B )
-Yb[z==1,] <- matrix( rbinom( N/2*B, 1, .25 ), N/2, B )
-Yb[z==2,] <- matrix( rbinom( N/2*B, 1, .75 ), N/2, B )
 
-out <- mfmr( Yb, Yq, G, K=2 )
+probs	<- rbeta(B,1,1)
+Yb[z==1,] <- matrix( rbinom( N/2*B, 1, rep(1-probs,each=N/2) ), N/2, B )
+Yb[z==2,] <- matrix( rbinom( N/2*B, 1, rep(  probs,each=N/2) ), N/2, B )
+
+out <- mfmr( Yb, Yq, cbind(1,G), K=2 )
 
 # accuracy measures:
 round( cor( out$pmat[,1], z )^2 , 2 )
-round( cor( as.numeric( beta1 ), as.numeric( out$out$beta[1,,-(1:B)] ) ), 2 )
-round( cor( as.numeric( beta1 ), as.numeric( out$out$beta[2,,-(1:B)] ) ), 2 )
+round( cor( as.numeric( beta1 ), as.numeric( out$out$beta[1,-1,-(1:B)] ) ), 2 )
+round( cor( as.numeric( beta1 ), as.numeric( out$out$beta[2,-1,-(1:B)] ) ), 2 )
 
 # removing binary traits slightly reduces accuracy
-out <- mfmr( Yb=NULL, Yq, G, K=2 )
-round( cor( out$pmat[,1], z )^2 , 2 )
-round( cor( as.numeric( beta1 ), as.numeric( out$out$beta[1,,] ) ), 2 )
-round( cor( as.numeric( beta1 ), as.numeric( out$out$beta[2,,] ) ), 2 )
-~
+outq <- mfmr( Yb=NULL, Yq, cbind(1,G), K=2 )
+round( cor( outq$pmat[,1], z )^2 , 2 )
+round( cor( as.numeric( beta1 ), as.numeric( outq$out$beta[1,-1,] ) ), 2 )
+round( cor( as.numeric( beta1 ), as.numeric( outq$out$beta[2,-1,] ) ), 2 )
+
+# removing quantitative traits significantly reduces accuracy
+outb <- mfmr( Yb, Yq=NULL, cbind(1,G), K=2 )
+round( cor( outb$pmat[,1], z )^2 , 2 )
+
+round( cor( out$pmat[,1] , z )^2 , 4 )
+round( cor( outq$pmat[,1], z )^2 , 4 )
+round( cor( outb$pmat[,1], z )^2 , 4 )
 
 }

@@ -57,7 +57,7 @@ Yb <- matrix( NA, N, B )
 Yb[z==1,]  <- matrix( rbinom( N/2*B, 1, .25 ), N/2, B )
 Yb[z==2,]  <- matrix( rbinom( N/2*B, 1, .75 ), N/2, B )
 
-out  <- droptest( Yb, Yq, G, test_inds=2:3, K=2 )
+out  <- droptest( Yb, Yq, G, test_inds=2:2, K=2 )
 
 # mostly significant for first 9 quant. traits, not last one
 round( out$pvals['Hom',1,B+1:P], 3 )

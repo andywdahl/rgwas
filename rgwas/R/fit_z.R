@@ -1,7 +1,9 @@
 fit_z	<- function( Yb, Yq, G, X, out ){
 
 	if( is.null( Yb ) )
-		return( fit_z_nobin( Yq, G, X, out ) )
+		return( fit_z_nobin  ( Yq, G, X, out ) )
+	if( is.null( Yq ) )
+		return( fit_z_noquant( Yb, G, X, out ) )
 
 	N	<- nrow(Yb)
 	B	<- ncol(Yb)
@@ -31,13 +33,13 @@ fit_z	<- function( Yb, Yq, G, X, out ){
 	lpmat2pmat( pmat )
 }
 
-fit_z_nobin	<- function( Y, G, X, out ){
+fit_z_nobin	<- function( Yq, G, X, out ){
 
-	N	<- nrow(Y)
+	N	<- nrow(Yq)
 	K	<- length(out$pvec)
 
 	if( is.null( X ) ){
-		Xalpha	<- matrix( 0, N, ncol(Y) )
+		Xalpha	<- matrix( 0, N, ncol(Yq) )
 	} else {
 		Xalpha	<- X %*% out$alpha
 	}
@@ -46,9 +48,36 @@ fit_z_nobin	<- function( Y, G, X, out ){
 
 	pmat	<- matrix( NA, N, K )
 	for( k in 1:K ){
-		qerr			<- Y - Xalpha - G %*% out$beta[k,,]
+		qerr		<- Yq - Xalpha - G %*% out$beta[k,,]
 		Lam_qerr	<- qerr %*% Lambda
 		pmat[,k]	<- log(out$pvec[k]) - 1/2*rowSums( Lam_qerr * qerr )
+	}
+	lpmat2pmat( pmat )
+}
+
+fit_z_noquant	<- function( Yb, G, X, out ){
+
+	N	<- nrow(Yb)
+	B	<- ncol(Yb)
+	K	<- length(out$pvec)
+
+	if( is.null( X ) ){
+		Xalpha	<- matrix( 0, N, B )
+	} else {
+		Xalpha	<- X %*% out$alpha
+	}
+
+	beta	<- out$beta
+
+	pmat	<- matrix( NA, N, K )
+	for( k in 1:K ){
+
+		mu0				<- Xalpha	+ G %*% beta[k,,]
+
+		l.binp	<- matrix( NA, N, B )
+		for( b in 1:B )
+			l.binp[,b]	<- bin_fxn( mu0[,b], sd0=1, zeros=which(Yb[,b]==0) )$l.binp
+		pmat[,k]	<- log(out$pvec[k]) + rowSums(l.binp)
 	}
 	lpmat2pmat( pmat )
 }

@@ -1,10 +1,12 @@
 \name{score_K}
 \alias{score_K}
+\alias{score_K_ps}
 
 \title{Cross-validation for MFMR}
 \description{Fits cross-validated likelihood and entropy for MFMR to choose K.}
 \usage{
-score_K( Yb, Yq, G, X=NULL, K, n.folds=10, ... )
+score_K( Yb, Yq, G, X=NULL, K, n.folds=10, mc.cores=1, nrun=10, ... )
+score_K_ps( Yb, Yq, G, X=NULL, K, n.folds=10, mc.cores=1, nrun=10, tau=0, ... )
 }
 
 \arguments{
@@ -14,12 +16,17 @@ score_K( Yb, Yq, G, X=NULL, K, n.folds=10, ... )
   \item{X}{NxQ matrix of homogeneous covariates}
   \item{K}{Number of subtypes, >=1}
   \item{n.folds}{Number of folds to split data into}
+  \item{tau}{Hard-threshold for cluster probabilities, needed to compute prediction strength}
+  \item{nrun}{Number of random initializations to run}
+  \item{mc.cores}{Number of cores to use in mclapply}
   \item{...}{Arguments passsed to mfrm_em_alg, the workhorse function}
 }
-\value{An n.folds x 2 matrix with the out-of-sample log-likelihood (column 1) and entropy (column 2) for each fold.}
+\value{score_K returns an n.folds x 2 matrix with the out-of-sample log-likelihood (column 1) and entropy (column 2) for each fold.
+
+score_K_ps returns an n.folds-length vector with estimated prediction strengths using a 50/50 train/test split.}
 
 \author{Andy Dahl}
-\details{We recommend scoring various values of K, starting from 1, and to only study K less than or equal to the cross-validated likelihood maximizer, though other metrics could be used.}
+\details{We recommend scoring various values of K, starting from 1, and to only study K less than or equal to the maximizer of the cross-validated likelihood or prediction strength. However, other metrics could be used, and prediction strength can be rather conservative for smaller sample sizes.}
 \examples{
 N <- 2000
 P <- 27
